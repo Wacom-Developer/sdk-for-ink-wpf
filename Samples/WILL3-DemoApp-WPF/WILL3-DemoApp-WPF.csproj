@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">Win32</Platform>
+    <ProjectGuid>{6C6A7C9A-B5E6-4C8A-9856-A1CB6EE89B29}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Wacom</RootNamespace>
+    <AssemblyName>WacomInkDemoWPF</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Win32' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Win32' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Brushes\BrushOptions.cs" />
+    <Compile Include="Brushes\DrawingTool.cs" />
+    <Compile Include="Brushes\RasterDrawingTool.cs" />
+    <Compile Include="Brushes\VectorDrawingTool.cs" />
+    <Compile Include="Controls\InkControlBase.cs" />
+    <Compile Include="InkBuilders\RasterInkBuilder.cs" />
+    <Compile Include="Controls\RasterInkControl.xaml.cs">
+      <DependentUpon>RasterInkControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Serializer.cs" />
+    <Compile Include="Utils\DirtyRectManager.cs" />
+    <Compile Include="Utils\PointerManager.cs" />
+    <Compile Include="Utils\PolygonUtil.cs" />
+    <Compile Include="Utils\Utils.cs" />
+    <Compile Include="Utils\VectorBrushFactory.cs" />
+    <Compile Include="Controls\VectorInkControl.xaml.cs">
+      <DependentUpon>VectorInkControl.xaml</DependentUpon>
+    </Compile>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="InkBuilders\InkBuilder.cs" />
+    <Compile Include="InkBuilders\VectorInkBuilder.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Controls\RasterInkControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\VectorInkControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\fill.png" />
+    <Resource Include="Resources\shape.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\arrow_down.png" />
+    <Resource Include="Resources\btn_analyse.png" />
+    <Resource Include="Resources\btn_back.png" />
+    <Resource Include="Resources\btn_clear.png" />
+    <Resource Include="Resources\btn_export.png" />
+    <Resource Include="Resources\btn_import_brush.png" />
+    <Resource Include="Resources\btn_load.png" />
+    <Resource Include="Resources\btn_paper_01.jpg" />
+    <Resource Include="Resources\btn_paper_02.jpg" />
+    <Resource Include="Resources\btn_paper_03.jpg" />
+    <Resource Include="Resources\btn_save.png" />
+    <Resource Include="Resources\dropdown_arrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\textures\essential_fill_11.png" />
+    <Resource Include="Resources\textures\essential_fill_14.png" />
+    <Resource Include="Resources\textures\essential_fill_17.png" />
+    <Resource Include="Resources\textures\essential_fill_8.png" />
+    <Resource Include="Resources\textures\essential_fill_transperant.png" />
+    <Resource Include="Resources\textures\essential_shape.png" />
+    <Resource Include="Resources\textures\essential_shape_7.png" />
+    <Resource Include="Resources\textures\essential_shape_8.png" />
+    <Resource Include="Resources\textures\essential_shape_9.png" />
+    <Resource Include="Resources\textures\fill_5.jpg" />
+    <Resource Include="Resources\textures\fountain_brush_128x128.png" />
+    <Resource Include="Resources\textures\fountain_brush_16x16.png" />
+    <Resource Include="Resources\textures\fountain_brush_1x1.png" />
+    <Resource Include="Resources\textures\fountain_brush_2x2.png" />
+    <Resource Include="Resources\textures\fountain_brush_32x32.png" />
+    <Resource Include="Resources\textures\fountain_brush_4x4.png" />
+    <Resource Include="Resources\textures\fountain_brush_64x64.png" />
+    <Resource Include="Resources\textures\fountain_brush_8x8.png" />
+    <Resource Include="Resources\textures\paws_shape.png" />
+    <Resource Include="Resources\textures\paws_shape_128x128.png" />
+    <Resource Include="Resources\textures\paws_shape_16x16.png" />
+    <Resource Include="Resources\textures\paws_shape_32x32.png" />
+    <Resource Include="Resources\textures\paws_shape_400x400.png" />
+    <Resource Include="Resources\textures\paws_shape_64x64.png" />
+    <Resource Include="Resources\textures\shape_circle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\btn_tools\btn_basic_brush.png" />
+    <Resource Include="Resources\btn_tools\btn_brush.png" />
+    <Resource Include="Resources\btn_tools\btn_crayon.png" />
+    <Resource Include="Resources\btn_tools\btn_eraser.png" />
+    <Resource Include="Resources\btn_tools\btn_feather.png" />
+    <Resource Include="Resources\btn_tools\btn_marker.png" />
+    <Resource Include="Resources\btn_tools\btn_pen.png" />
+    <Resource Include="Resources\btn_tools\btn_pencil.png" />
+    <Resource Include="Resources\btn_tools\btn_selector.png" />
+    <Resource Include="Resources\btn_tools\btn_selector_whole_stroke.png" />
+    <Resource Include="Resources\btn_tools\btn_toolconfig_tool.png" />
+    <Resource Include="Resources\btn_tools\btn_water_brush.png" />
+    <Resource Include="Resources\btn_tools\eraser.png" />
+    <Resource Include="Resources\btn_tools\eraser_delayed_partial_stroke.png" />
+    <Resource Include="Resources\btn_tools\eraser_partial_stroke.png" />
+    <Resource Include="Resources\btn_tools\eraser_whole_stroke.png" />
+    <Resource Include="Resources\btn_tools\rainbow_brush.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\btn_tools\btn_brush_lt.png" />
+    <Resource Include="Resources\btn_tools\btn_crayon_lt.png" />
+    <Resource Include="Resources\btn_tools\btn_feather_lt.png" />
+    <Resource Include="Resources\btn_tools\btn_pencil_lt.png" />
+    <Resource Include="Resources\btn_tools\btn_pen_lt.png" />
+    <Resource Include="Resources\btn_tools\btn_water_brush_lt.png" />
+  </ItemGroup>
+   <Choose>
+    <When Condition=" '$(Platform)' == 'x64' ">   
+	  <ItemGroup>	
+	    <PackageReference Include="Microsoft.Wpf.Interop.DirectX-x64">
+		  <Version>0.9.0-beta-22856</Version>
+	    </PackageReference>
+	  </ItemGroup>
+	</When>
+	<When Condition=" '$(Platform)' == 'Win32' ">   
+	  <ItemGroup>	
+	    <PackageReference Include="Microsoft.Wpf.Interop.DirectX-x86">
+          <Version>0.9.0-beta-22856</Version>
+        </PackageReference>
+	  </ItemGroup>
+	</When>
+	</Choose>
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Vectors">
+      <Version>4.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="Wacom.Ink.Rendering.WPF">
+      <Version>3.0.5</Version>
+    </PackageReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

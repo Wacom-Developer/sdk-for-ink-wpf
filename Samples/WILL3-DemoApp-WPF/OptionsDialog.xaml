@@ -1,0 +1,71 @@
+﻿<Window x:Class="Wacom.OptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Wacom"
+        mc:Ignorable="d"
+        Title="Options" 
+        Height="186" 
+        Width="370">
+  <Window.Resources>
+    <Style x:Key="Common" TargetType="Control">
+      <Setter Property="Margin" Value="4"/>
+    </Style>
+    <Style TargetType="Button" BasedOn="{StaticResource Common}">
+      <Setter Property="Width" Value="75"/>
+    </Style>
+    <Style TargetType="ComboBox" BasedOn="{StaticResource Common}">
+      <!--<Setter Property="Width" Value="250"/>-->
+    </Style>
+
+  </Window.Resources>
+  <Grid>
+    <StackPanel>
+      <Grid Grid.Row="0" Grid.Column="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Brush type:"/>
+        <ComboBox x:Name="cbxBrushType" Grid.Row="0" Grid.Column="1" 
+                  SelectionChanged="OnBrushTypeChanged" 
+                  SelectedValue="{Binding BrushType, Mode=TwoWay}" 
+                  ItemsSource="{Binding BrushTypes}"
+                  />
+
+        <Label Grid.Row="1" Grid.Column="0" Content="Color:"/>
+        <ComboBox x:Name="cbxBrushColor" Grid.Row="1" Grid.Column="1" 
+                  ItemsSource="{Binding Path=BrushColors}"  
+                  DisplayMemberPath="Value" 
+                  SelectedValuePath="Key"
+                  SelectedValue="{Binding Path=BrushColor, Mode=TwoWay}"
+                  />
+
+        <Label Grid.Row="2" Grid.Column="0" Content="Size:"/>
+        <ComboBox x:Name="cbxBrushThickness" Grid.Row="2" Grid.Column="1" 
+                  SelectedValue="{Binding BrushThickness, Mode=TwoWay}" 
+                  ItemsSource="{Binding BrushThicknesses}"
+                  />
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Vector brush shape:"/>
+        <ComboBox x:Name="cbxVectBrushShape" Grid.Row="3" Grid.Column="1"
+                  ItemsSource="{Binding VectorBrushShapes}"
+                  SelectedValue="{Binding VectorBrushShape, Mode=TwoWay}" 
+                  />
+
+      </Grid>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment ="Right">
+        <Button Name="okButton" Click="OnOK_Click" IsDefault="True">OK</Button>
+        <Button Name="cancelButton" IsCancel="True">Cancel</Button>
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</Window>

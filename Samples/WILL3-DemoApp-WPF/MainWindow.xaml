@@ -1,0 +1,174 @@
+﻿<Window x:Class="Wacom.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Wacom"
+        xmlns:interop="clr-namespace:System.Windows.Interop;assembly=PresentationCore"
+        xmlns:dx="clr-namespace:Microsoft.Wpf.Interop.DirectX;assembly=Microsoft.Wpf.Interop.DirectX"
+        mc:Ignorable="d"
+        Title="WILL 3.0 Ink for WPF"
+        Width="800"
+        Height="600">
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style TargetType="MenuItem">
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+            <BitmapImage x:Key="Load" UriSource="Resources/btn_load.png" />
+            <BitmapImage x:Key="Save" UriSource="Resources/btn_save.png" />
+
+            <BitmapImage x:Key="Clear" UriSource="Resources/btn_clear.png" />
+
+            <BitmapImage x:Key="Pen" UriSource="Resources/btn_tools/btn_pen.png" />
+            <BitmapImage x:Key="PenSelected" UriSource="Resources/btn_tools/btn_pen_lt.png" />
+            <BitmapImage x:Key="Felt" UriSource="Resources/btn_tools/btn_feather.png" />
+            <BitmapImage x:Key="FeltSelected" UriSource="Resources/btn_tools/btn_feather_lt.png" />
+            <BitmapImage x:Key="Brush" UriSource="Resources/btn_tools/btn_brush.png" />
+            <BitmapImage x:Key="BrushSelected" UriSource="Resources/btn_tools/btn_brush_lt.png" />
+
+            <BitmapImage x:Key="Pencil" UriSource="Resources/btn_tools/btn_pencil.png" />
+            <BitmapImage x:Key="PencilSelected" UriSource="Resources/btn_tools/btn_pencil_lt.png" />
+            <BitmapImage x:Key="WaterBrush" UriSource="Resources/btn_tools/btn_water_brush.png" />
+            <BitmapImage x:Key="WaterBrushSelected" UriSource="Resources/btn_tools/btn_water_brush_lt.png" />
+            <BitmapImage x:Key="Crayon" UriSource="Resources/btn_tools/btn_crayon.png" />
+            <BitmapImage x:Key="CrayonSelected" UriSource="Resources/btn_tools/btn_crayon_lt.png" />
+        </ResourceDictionary>
+    </Window.Resources>
+    <DockPanel>
+        <!--<Menu DockPanel.Dock="Top">
+      <MenuItem Header="≡" FontSize="14">
+        <MenuItem Header="_Clear" Click="OnClear_Click"/>
+        <MenuItem Header="_Options..." Click="OnOptions_Click"/>
+        <Separator/>
+        <MenuItem Header="E_xit" Click="OnExit_Click"/>
+      </MenuItem>
+    </Menu>-->
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button ToolTip="Load" Click="OnLoad_Click">
+                    <Image Source="{StaticResource Load}"/>
+                </Button>
+                <Button ToolTip="Save" Click="OnSave_Click">
+                    <Image Source="{StaticResource Save}" />
+                </Button>
+                <Separator Width="20" Background="Transparent"/>
+                <Button ToolTip="Clear" Click="OnClear_Click">
+                    <Image Source="{StaticResource Clear}" ToolTip="Clear"/>
+                </Button>
+                <Separator Width="20" Background="Transparent"/>
+                <Button Width="28" Height="28" ToolTip="Color" Click="OnColor_Click" x:Name="btnColor">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Ellipse Stroke="DarkGray" StrokeThickness="1" Fill="{TemplateBinding Background}"/>
+
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Separator Width="20" Background="Transparent"/>
+                <ToggleButton ToolTip="Pen" Click="OnPen_Click" x:Name="BtnPen">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnPen}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource PenSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnPen}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource Pen}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>
+                <ToggleButton ToolTip="Felt" Click="OnFelt_Click" x:Name="BtnFelt">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnFelt}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource FeltSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnFelt}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource Felt}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>
+                <ToggleButton ToolTip="Brush" Click="OnBrush_Click" x:Name="BtnBrush">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnBrush}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource BrushSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnBrush}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource Brush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>                                                         
+                <Separator Width="20" Background="Transparent"/>
+                <ToggleButton ToolTip="Pencil" Click="OnPencil_Click" x:Name="BtnPencil">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnPencil}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource PencilSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnPencil}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource Pencil}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>
+                <ToggleButton ToolTip="Water brush" Click="OnWaterBrush_Click" x:Name="BtnWaterBrush">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnWaterBrush}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource WaterBrushSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnWaterBrush}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource WaterBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>
+                <ToggleButton ToolTip="Crayon" Click="OnCrayon_Click" x:Name="BtnCrayon">
+                    <Image Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="{x:Type Image}">
+                                <Style.Triggers>
+                                    <DataTrigger  Binding="{Binding IsChecked, ElementName=BtnCrayon}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource CrayonSelected}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=BtnCrayon}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource Crayon}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ToggleButton>
+
+            </ToolBar>
+        </ToolBarTray>
+        <ContentControl x:Name="NavFrame"/>
+    </DockPanel>
+
+</Window>
