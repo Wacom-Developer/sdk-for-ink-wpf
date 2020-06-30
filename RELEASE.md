@@ -1,4 +1,4 @@
-# SDK for ink - Windows WPF
+# WILL SDK for ink - Windows WPF
 
 ## Version 3.0.5
 
