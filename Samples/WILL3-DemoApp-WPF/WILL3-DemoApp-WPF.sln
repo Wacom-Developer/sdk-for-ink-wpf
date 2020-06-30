@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30128.74
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WILL3-DemoApp-WPF", "WILL3-DemoApp-WPF.csproj", "{6C6A7C9A-B5E6-4C8A-9856-A1CB6EE89B29}"
 EndProject

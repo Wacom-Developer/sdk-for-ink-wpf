@@ -22,6 +22,35 @@ namespace Wacom
 
         public abstract VectorBrush Shape { get; }
 
+        /// <summary>
+        /// Calculator delegate for input from mouse input
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected PathPoint CalculatorForMouseAndTouch(PointerData previous, PointerData current, PointerData next)
+        {
+            var size = current.ComputeValueBasedOnSpeed(previous, next, SizeConfig.minValue, SizeConfig.maxValue, SizeConfig.initValue, SizeConfig.finalValue, SizeConfig.minSpeed, SizeConfig.maxSpeed, SizeConfig.remap);
+
+            if (size.HasValue)
+            {
+                PreviousSize = size.Value;
+            }
+            else
+            {
+                size = PreviousSize;
+            }
+
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size
+            };
+
+            return pp;
+        }
+
     }
 
     /// <summary>
@@ -31,12 +60,75 @@ namespace Wacom
     {
         private static readonly ToolConfig mConfig = new ToolConfig()
         {
-            minSpeed = 5,
-            maxSpeed = 210,
-            minValue = 0.5f,
-            maxValue = 1.6f,
-            remap = v => (1 + 0.62f) * v / ((float)Math.Abs(v) + 0.62f)
+            minSpeed = 180,
+            maxSpeed = 2100,
+            minValue = 1.5f,
+            maxValue = 3,
+            initValue = 1.5f,
+            finalValue = 1.5f,
+            remap = v => (float)Math.Pow(v, 0.35f)
         };
+
+        protected override float PreviousSize { get; set; } = 1.5f;
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+
+        public override Calculator GetCalculatorMouse()
+        {
+            return CalculatorForMouseAndTouch;
+        }
+
+        public override Calculator GetCalculatorStylus()
+        {
+            return CalculatorForMouseAndTouch;
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        private PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+            if (!current.Force.HasValue)
+            {
+                return CalculatorForMouseAndTouch(previous, current, next);
+            }
+            else
+            {
+                var size = ComputeValueBasedOnPressure(current, 1.5f, 3f, 180f, 2100f, false, v => (float)Math.Pow(v, 0.35f));
+
+                if (size.HasValue)
+                {
+                    PreviousSize = size.Value;
+                }
+                else
+                {
+                    size = PreviousSize;
+                }
+
+                PathPoint pp = new PathPoint(current.X, current.Y)
+                {
+                    Size = size
+                };
+                return pp;
+            }
+        }
 
         public override VectorBrush Shape => mCircleBrush; 
         protected override ToolConfig SizeConfig => mConfig; 
@@ -49,15 +141,78 @@ namespace Wacom
     {
         private static readonly ToolConfig mConfig = new ToolConfig()
         {
-            minSpeed = 33,
-            maxSpeed = 628,
-            minValue = 1.03f,
-            maxValue = 2.43f,
-            remap = v => 0.5f - 0.5f * (float)Math.Cos(3 * Math.PI * v)
+            minSpeed = 80,
+            maxSpeed = 1400,
+            minValue = 3,
+            maxValue = 7,
+            initValue = 3f,
+            finalValue = 3f,
+            remap = v => (float)Math.Pow(v, 0.65f)
         };
 
         public override VectorBrush Shape => mCircleBrush;
-        protected override ToolConfig SizeConfig => mConfig; 
+        protected override ToolConfig SizeConfig => mConfig;
+
+        protected override float PreviousSize { get; set; } = 2f;
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+
+        public override Calculator GetCalculatorMouse()
+        {
+            return CalculatorForMouseAndTouch;
+        }
+
+        public override Calculator GetCalculatorStylus()
+        {
+            return CalculatorForStylus;
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        private PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+            float? size;
+
+            if (!current.Force.HasValue)
+            {
+                size = current.ComputeValueBasedOnSpeed(previous, next, 1, 5, null, null, 0, 3500, v => (float)Math.Pow(v, 1.17f));
+            }
+            else
+            {
+                size = ComputeValueBasedOnPressure(current, 1, 5, 0, 1, false, v => (float)Math.Pow(v, 1.17f));
+            }
+            if (size.HasValue)
+            {
+                PreviousSize = size.Value;
+            }
+            else
+            {
+                size = PreviousSize;
+            }
+
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+            };
+            return pp;
+        }
     }
 
     /// <summary>
@@ -69,13 +224,78 @@ namespace Wacom
         {
             minSpeed = 182,
             maxSpeed = 3547,
-            minValue = 3.4f,
+            minValue = 10,
             maxValue = 17.2f,
-            remap = v => (float)Math.Pow(v, 1.19),
+            initValue = 10f,
+            finalValue = 10f,
+            remap = v => (float)Math.Pow(v, 1.19f)
         };
 
         public override VectorBrush Shape => mCircleBrush;
         protected override ToolConfig SizeConfig => mConfig; 
         protected override float? Alpha => 0.7f;
+
+        protected override float PreviousSize { get; set; } = 10;
+
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size);
+        }
+
+        public override Calculator GetCalculatorMouse()
+        {
+            return CalculatorForMouseAndTouch;
+        }
+
+        public override Calculator GetCalculatorStylus()
+        {
+            return CalculatorForStylus;
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        private PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+            float? size;
+
+            if (!current.Force.HasValue)
+            {
+                size = current.ComputeValueBasedOnSpeed(previous, next, 1.5f, 10.2f, null, null, 0, 3500, v => (float)Math.Pow(v, 1.17f));
+            }
+            else
+            {
+                size = ComputeValueBasedOnPressure(current, 1.5f, 10.2f, 0, 1, false, v => (float)Math.Pow(v, 1.17f));
+            }
+            if (size.HasValue)
+            {
+                PreviousSize = size.Value;
+            }
+            else
+            {
+                size = PreviousSize;
+            }
+
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+            };
+            return pp;
+        }
     }
 }

@@ -113,14 +113,12 @@ namespace Wacom
 
         public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
         {
-            var layoutAndCalc = ActiveTool.GetLayoutAndCalulatorForStylus();
-            UpdatePipeline(layoutAndCalc.Item1, layoutAndCalc.Item2, ActiveTool.Shape);
+            UpdatePipeline(ActiveTool.GetLayoutStylus(), ActiveTool.GetCalculatorStylus(), ActiveTool.Shape);
         }
 
         public override void SetupForMouse(Graphics graphics)
         {
-            var layoutAndCalc = ActiveTool.GetLayoutAndCalulatorForMouse();
-            UpdatePipeline(layoutAndCalc.Item1, layoutAndCalc.Item2, ActiveTool.Shape);
+            UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.Shape);
         }
 
         public void UpdatePipeline(PathPointLayout layout, Calculator calculator, VectorBrush brush)

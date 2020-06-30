@@ -286,9 +286,6 @@ namespace Wacom
 
                 var merged = mPolygonMerger.Add(true, true, hulls.Addition, hulls.Prediction);
 
-                //var simplified = m_polygonSimplifier.Add(true, true, merged.Item1, merged.Item2);
-                //return simplified;
-
                 return merged;
             }
         }

@@ -148,9 +148,8 @@ namespace Wacom
                 //MessageBox.Show(saveFileDlg.FileName);
                 using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDlg.FileName, FileMode.Create)))
                 {
-                    Will3Codec will3Codec = new Will3Codec();
                     var inkCtrl = NavFrame.Content as InkControlBase;
-                    writer.Write(will3Codec.Encode(inkCtrl.Serializer.InkDocument));
+                    writer.Write(Will3Codec.Encode(inkCtrl.Serializer.InkDocument));
                 }
             }
         }
@@ -169,8 +168,7 @@ namespace Wacom
                     byte[] buff = new byte[info.Length];
 
                     reader.Read(buff, 0, (int)info.Length);
-                    Will3Codec will3Codec = new Will3Codec();
-                    var inkDocument = will3Codec.Decode(buff);
+                    var inkDocument = Will3Codec.Decode(buff);
                     InkControlBase inkCtrl = null;
 
                     if (inkDocument.Brushes.RasterBrushes.Count > 0 && inkDocument.Brushes.VectorBrushes.Count > 0)

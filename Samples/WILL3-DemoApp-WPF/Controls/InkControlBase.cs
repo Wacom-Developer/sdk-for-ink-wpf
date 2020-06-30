@@ -83,6 +83,7 @@ namespace Wacom
         /// </summary>
         public virtual void ClearStrokes()
         {
+            mSerializer = new Serializer();
             ClearLayers();
             RequestRender();
         }

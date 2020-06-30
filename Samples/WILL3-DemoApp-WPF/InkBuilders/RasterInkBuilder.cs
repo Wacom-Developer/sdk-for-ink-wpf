@@ -85,22 +85,19 @@ namespace Wacom
         public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
         {
             SetBrushStyle(mBrushStyle, graphics);
-            var layoutAndCalc = ActiveTool.GetLayoutAndCalulatorForStylus();
-            UpdatePipeline(layoutAndCalc.Item1, layoutAndCalc.Item2, ActiveTool.ParticleSpacing);
+            UpdatePipeline(ActiveTool.GetLayoutStylus(), ActiveTool.GetCalculatorStylus(), ActiveTool.ParticleSpacing);
         }
 
         public void SetupForTouch(Graphics graphics)
         {
             SetBrushStyle(mBrushStyle, graphics);
-            var layoutAndCalc = ActiveTool.GetLayoutAndCalulatorForMouse();
-            UpdatePipeline(layoutAndCalc.Item1, layoutAndCalc.Item2, ActiveTool.ParticleSpacing);
+            UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
         }
 
         public override void SetupForMouse(Graphics graphics)
         {
             SetBrushStyle(mBrushStyle, graphics);
-            var layoutAndCalc = ActiveTool.GetLayoutAndCalulatorForMouse();
-            UpdatePipeline(layoutAndCalc.Item1, layoutAndCalc.Item2, ActiveTool.ParticleSpacing);
+            UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
         }
 
         public void UpdatePipeline(PathPointLayout layout, Calculator calculator, float spacing)

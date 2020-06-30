@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -148,9 +149,8 @@ namespace Wacom
 
         private void InkBuilder_LayoutUpdated(object sender, EventArgs e)
         {
-            uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
-            mAddedInterpolatedSpline = new ParticleList(channelMask);
-            mPredictedInterpolatedSpline = new ParticleList(channelMask);
+            mAddedInterpolatedSpline = new ParticleList();
+            mPredictedInterpolatedSpline = new ParticleList();
         }
 
         private void CreateBrush(RasterBrushStyle brushStyle)
@@ -164,7 +164,6 @@ namespace Wacom
         #region Stroke Handling
         protected override void RenderNewStrokeSegment()
         {
-            //var result = mInkBuilder.GetPath();
             ProcessorResult<List<float>> result;
 
             lock (mInkBuilderLock)
@@ -179,10 +178,10 @@ namespace Wacom
                 }
             }
 
-            uint mChannelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
+            uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
 
-            mAddedInterpolatedSpline.Assign(result.Addition);
-            mPredictedInterpolatedSpline.Assign(result.Prediction);
+            mAddedInterpolatedSpline.Assign(result.Addition, channelMask);
+            mPredictedInterpolatedSpline.Assign(result.Prediction, channelMask);
 
             ParticleBrush brush = mInkBuilder.Brush;
 
@@ -227,8 +226,8 @@ namespace Wacom
                 if (points.Count > 0)
                 {
                     uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
-                    ParticleList path = new ParticleList(channelMask);
-                    path.Assign(points);
+                    ParticleList path = new ParticleList();
+                    path.Assign(points, channelMask);
                     mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone()));
                 }
             }
@@ -299,8 +298,8 @@ namespace Wacom
 
             uint channelMask = (uint)decodedRasterInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
 
-            ParticleList particleList = new ParticleList(channelMask);
-            particleList.Assign(points);
+            ParticleList particleList = new ParticleList();
+            particleList.Assign(points, channelMask);
 
             PathPointProperties ppp = stroke.Style.PathPointProperties;
 

@@ -95,10 +95,6 @@ namespace Wacom
             // Fill the default channels with the sensor data
             FillDefaultChannels(sensorData, sensorContext, pointerDataList);
 
-            ///* [SAMPLE]: Add data to the custom sensor channels
-            FillCustomChannels(sensorData, pointerDataList);
-            //*/
-
             InkDocument.SensorData.Add(sensorData);
 
             Spline spline = inkBuilder.SplineProducer.AllData;
@@ -119,8 +115,6 @@ namespace Wacom
 
         private void AddRasterBrushToInkDoc(string pointerDeviceType, RasterBrush rasterBrush, Style rasterStyle, StrokeConstants strokeConstants, uint startRandomSeed)
         {
-            rasterStyle.RenderModeUri = $"will3://rendering//{pointerDeviceType}";
-
             if (!InkDocument.Brushes.TryGetBrush(rasterBrush.Name, out Brush foundBrush))
             {
                 InkDocument.Brushes.AddRasterBrush(rasterBrush);
@@ -129,8 +123,6 @@ namespace Wacom
 
         private void AddVectorBrushToInkDoc(string pointerDeviceType, Wacom.Ink.Serialization.Model.VectorBrush vectorBrush, Style style)
         {
-            style.RenderModeUri = $"will3://rendering//{pointerDeviceType}";
-
             if (!InkDocument.Brushes.TryGetBrush(vectorBrush.Name, out Brush foundBrush))
             {
                 InkDocument.Brushes.AddVectorBrush(vectorBrush);
@@ -159,8 +151,6 @@ namespace Wacom
         {
             InputDevice inputDevice = new InputDevice();
             inputDevice.Properties["dev.name"] = System.Environment.MachineName;
-            //inputDevice.Properties["dev.model"] = m_eas.SystemProductName;
-            //inputDevice.Properties["dev.manufacturer"] = m_eas.SystemManufacturer;
             inputDevice.Seal();
 
             Identifier inputDeviceId = inputDevice.Id;
@@ -177,7 +167,7 @@ namespace Wacom
         private SensorContext CreateAndAddSensorContext(InkInputProvider inkInputProvider, InputDevice inputDevice)
         {
             // Create the sensor channel groups using the input provider and device
-            SensorChannelsContext defaultSensorChannelsContext = SensorChannelsContext.CreateDefault(inkInputProvider, inputDevice);
+            SensorChannelsContext defaultSensorChannelsContext = CreateChannelsGroup(inkInputProvider, inputDevice);
 
             SensorChannelsContext specialChannelsContext = new SensorChannelsContext(
                 inkInputProvider,
@@ -202,6 +192,29 @@ namespace Wacom
             return sensorContext;
         }
 
+        public static SensorChannelsContext CreateChannelsGroup(
+                   InkInputProvider inkInputProvider,
+                   InputDevice inputDevice,
+                   uint? latency = null,
+                   uint? samplingRateHint = null)
+        {
+            const uint precision = 2;
+
+            List<SensorChannel> sensorChannels = new List<SensorChannel>();
+            sensorChannels.Add(new SensorChannel(InkSensorType.X, InkSensorMetricType.Length, null, 0.0f, 0.0f, precision));
+            sensorChannels.Add(new SensorChannel(InkSensorType.Y, InkSensorMetricType.Length, null, 0.0f, 0.0f, precision));
+            sensorChannels.Add(new SensorChannel(InkSensorType.Timestamp, InkSensorMetricType.Time, null, 0.0f, 0.0f, 0));
+
+            SensorChannelsContext sensorChannelsContext = new SensorChannelsContext(
+                inkInputProvider,
+                inputDevice,
+                sensorChannels,
+                latency,
+                samplingRateHint);
+
+            return sensorChannelsContext;
+        }
+
         private Identifier CreateAndAddInputContext(Identifier sensorContextId)
         {
             InputContext inputContext = new InputContext(mEnvironment.Id, sensorContextId);
@@ -224,46 +237,7 @@ namespace Wacom
             sensorData.AddData(channels.GetChannel(InkSensorType.X), pointerDataList.Select((pd) => pd.X).ToList());
             sensorData.AddData(channels.GetChannel(InkSensorType.Y), pointerDataList.Select((pd) => pd.Y).ToList());
             sensorData.AddTimestampData(channels.GetChannel(InkSensorType.Timestamp), pointerDataList.Select((pd) => pd.Timestamp).ToList());
-
-            if (pointerDataList[0].Force.HasValue)
-            {
-                sensorData.AddData(channels.GetChannel(InkSensorType.Pressure), pointerDataList.Select((pd) => pd.Force.Value).ToList());
-            }
-
-            if (pointerDataList[0].Radius.HasValue)
-            {
-                sensorData.AddData(channels.GetChannel(InkSensorType.RadiusX), pointerDataList.Select((pd) => pd.Radius.Value).ToList());
-            }
-
-            if (pointerDataList[0].AzimuthAngle.HasValue)
-            {
-                sensorData.AddData(channels.GetChannel(InkSensorType.Azimuth), pointerDataList.Select((pd) => pd.AzimuthAngle.Value).ToList());
-            }
-
-            if (pointerDataList[0].AltitudeAngle.HasValue)
-            {
-                sensorData.AddData(channels.GetChannel(InkSensorType.Altitude), pointerDataList.Select((pd) => pd.AltitudeAngle.Value).ToList());
-            }
         }
 
-        private void FillCustomChannels(SensorData sensorData, List<PointerData> pointerDataList)
-        {
-            /*			ChannelData timestampChannelData = new ChannelData(m_timestampSensorChannel);
-                        ChannelData specialPressureChannelData = new ChannelData(m_specialPressureSensorChannel);
-
-                        int timestampChannelIndex = sensorData.RegisterCustomChannel(timestampChannelData);
-                        int specialPressureChannelIndex = sensorData.RegisterCustomChannel(specialPressureChannelData);
-
-                        // Offset the timestamp values
-                        List<long> timestampValues = pointerDataList.Select(pd => pd.Timestamp + 50).ToList();
-                        sensorData.AddToCustomChannel(timestampChannelIndex, timestampValues);
-
-                        Random rand = new Random();
-                        // Generate a random pressure value for each pointer data
-                        List<float> specialPressureValues = pointerDataList.Select(pd => (float)rand.Next(6, 12)).ToList();
-                        sensorData.AddToCustomChannel(specialPressureChannelIndex, specialPressureValues);*/
-        }
-
-    
     }
 }

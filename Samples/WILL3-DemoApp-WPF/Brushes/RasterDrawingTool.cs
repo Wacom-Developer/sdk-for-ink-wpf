@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -38,6 +39,70 @@ namespace Wacom
         /// Pixel info for brush shape
         /// </summary>
         public PixelInfo Shape { get; protected set; }
+
+        protected abstract float PreviousAlpha { get; set; }
+
+        public override Calculator GetCalculatorMouse()
+        {
+            return CalculatorForMouseAndTouch;
+        }
+
+        public override Calculator GetCalculatorStylus()
+        { 
+            return CalculatorForStylus;
+        }
+
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected abstract PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next);
+
+
+        /// <summary>
+        /// Calculator delegate for input from mouse input
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected PathPoint CalculatorForMouseAndTouch(PointerData previous, PointerData current, PointerData next)
+        {
+            var size = current.ComputeValueBasedOnSpeed(previous, next, SizeConfig.minValue, SizeConfig.maxValue, SizeConfig.initValue, SizeConfig.finalValue, SizeConfig.minSpeed, SizeConfig.maxSpeed, SizeConfig.remap);
+
+            if (size.HasValue)
+            {
+                PreviousSize = size.Value;
+            }
+            else
+            {
+                size = PreviousSize;
+            }
+
+            var alpha = current.ComputeValueBasedOnSpeed(previous, next, AlphaConfig.minValue, AlphaConfig.maxValue, AlphaConfig.initValue, AlphaConfig.finalValue, AlphaConfig.minSpeed, AlphaConfig.maxSpeed, AlphaConfig.remap);
+
+            if (alpha.HasValue)
+            {
+                PreviousAlpha = alpha.Value;
+            }
+            else
+            {
+                alpha = PreviousAlpha;
+            }
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+                Alpha = alpha
+            };
+
+            return pp;
+        }
 
     }
 
@@ -111,19 +176,27 @@ namespace Wacom
     /// </summary>
     class PencilTool : RasterDrawingTool
     {
+        private const float MinSize = 4;
+        private const float MaxSize = 10;
+        private const float MinAlpha = 0.1f;
+        private const float MaxAlpha = 0.7f;
+        private const float MaxSpeed = 15000;
+
         private static readonly ToolConfig mSizeConfig = new ToolConfig()
         {
-            minValue = 4,
-            maxValue = 5,
+            minValue = MinSize,
+            maxValue = MaxSize,
             minSpeed = 80,
-            maxSpeed = 1400,
+            maxSpeed = MaxSpeed,
+            remap = v => 1 - v
         };
         private static readonly ToolConfig mAlphaConfig = new ToolConfig()
         {
-            minValue = 0.05f,
-            maxValue = 0.2f,
+            minValue = MinAlpha,
+            maxValue = MaxAlpha,
             minSpeed = 80,
-            maxSpeed = 1400,
+            maxSpeed = MaxSpeed,
+            remap = v => 1 - v
         };
 
         public PencilTool(Graphics graphics)
@@ -141,8 +214,71 @@ namespace Wacom
         }
 
         protected override ToolConfig SizeConfig => mSizeConfig; 
-        protected override ToolConfig AlphaConfig => mAlphaConfig; 
+        protected override ToolConfig AlphaConfig => mAlphaConfig;
 
+        protected override float PreviousSize { get; set; } = 6;
+        protected override float PreviousAlpha { get; set; } = 0.2f;
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size,
+                                    PathPoint.Property.Alpha);
+        }
+
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Alpha);
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected override PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+
+            var size = (!current.Force.HasValue)
+                           ? current.ComputeValueBasedOnSpeed(previous, next, mSizeConfig.minValue, mSizeConfig.maxValue,
+                                       mSizeConfig.initValue, mSizeConfig.finalValue, mSizeConfig.minSpeed, mSizeConfig.maxSpeed, mSizeConfig.remap)
+                           : ComputeValueBasedOnPressure(current, 30f, 80f, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
+            if (!size.HasValue)
+            {
+                size = PreviousSize;
+            }
+            else
+            {
+                PreviousSize = size.Value;
+            }
+
+            // Change the intensity of alpha value by pressure of speed, if available else use speed
+            var alpha = (!current.Force.HasValue)
+                ? current.ComputeValueBasedOnSpeed(previous, next, MinAlpha, MaxAlpha, null, null, 0f, MaxSpeed)
+                : ComputeValueBasedOnPressure(current, MinAlpha, MaxAlpha, 0.0f, 1.0f);
+
+            if (!alpha.HasValue)
+            {
+                alpha = PreviousAlpha;
+            }
+            else
+            {
+                PreviousAlpha = alpha.Value;
+            }
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+                Alpha = alpha
+            };
+            return pp;
+        }
 
     };
 
@@ -151,20 +287,31 @@ namespace Wacom
     /// </summary>
     class WaterBrushTool : RasterDrawingTool
     {
+        private const float MinSize = 40;
+        private const float MaxSize = 60;
+        private const float MinAlpha = 0.2f;
+        private const float MaxAlpha = 0.5f;
+        private const float MaxSpeed = 7500;
+
         private static readonly ToolConfig mSizeConfig = new ToolConfig()
         {
-            minValue = 28,
-            maxValue = 32,
+            initValue = 40f,
+            finalValue = 40f,
+            minValue = 40,
+            maxValue = 60,
             minSpeed = 38,
             maxSpeed = 1500,
-            remap = v => (float)Math.Pow(v, 3)
+            remap = v => (float)Math.Pow(v, 1.17f)
         };
         private static readonly ToolConfig mAlphaConfig = new ToolConfig()
         {
-            minValue = 0.02f, 
-            maxValue = 0.25f, 
-            minSpeed = 38,
-            maxSpeed = 1500,
+            initValue = 0.05f,
+            finalValue = 0.05f,
+            minValue = 0.2f,
+            maxValue = 0.5f,
+            minSpeed = 1000,
+            maxSpeed = 3500,
+            remap = v => (float)Math.Pow(v, 1.17f)
         };
 
         public WaterBrushTool(Graphics graphics)
@@ -182,6 +329,69 @@ namespace Wacom
                                                                                  
         protected override ToolConfig SizeConfig => mSizeConfig; 
         protected override ToolConfig AlphaConfig => mAlphaConfig;
+
+        protected override float PreviousSize { get; set; } = 28;
+        protected override float PreviousAlpha { get; set; } = 0.02f;
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                    PathPoint.Property.Y,
+                                    PathPoint.Property.Size,
+                                    PathPoint.Property.Alpha);
+        }
+
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                            PathPoint.Property.Y,
+                                            PathPoint.Property.Size,
+                                            PathPoint.Property.Alpha);
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected override PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+            var size = (!current.Force.HasValue)
+                ? current.ComputeValueBasedOnSpeed(previous, next, 30f, 80f, null, null, 0f, 3500f, v => (float)Math.Pow(v, 1.17f))
+                : ComputeValueBasedOnPressure(current, 30f, 80f, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
+
+            if (!size.HasValue)
+            {
+                size = PreviousSize;
+            }
+            else
+            {
+                PreviousSize = size.Value;
+            }
+
+            // Change the intensity of alpha value by pressure or speed
+            var alpha = (!current.Force.HasValue)
+                ? current.ComputeValueBasedOnSpeed(previous, next, MinAlpha, MaxAlpha, null, null, 0f, 3500f, v => (float)Math.Pow(v, 1.17))
+                : ComputeValueBasedOnPressure(current, MinAlpha, MaxAlpha, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
+            if (!alpha.HasValue)
+            {
+                alpha = PreviousAlpha;
+            }
+            else
+            {
+                PreviousAlpha = alpha.Value;
+            }
+
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+                Alpha = alpha
+            };
+            return pp;
+        }
     }
 
     /// <summary>
@@ -189,12 +399,20 @@ namespace Wacom
     /// </summary>
     class CrayonTool : RasterDrawingTool
     {
+        private const float MinSize = 25;
+        private const float MaxSize = 50;
+        private const float MinAlpha = 0.1f;
+        private const float MaxAlpha = 0.7f;
+        private const float MaxSpeed = 15000;
+        private const float MinAltitudeAngle = 0.4f;
+
         private static readonly ToolConfig mSizeConfig = new ToolConfig()
         {
-            minValue = 18,
-            maxValue = 28,
+            minValue = MinSize,
+            maxValue = MaxSize,
             minSpeed = 10,
-            maxSpeed = 1400,
+            maxSpeed = MaxSpeed,
+            remap = v => 1 - v
         };
         private static readonly ToolConfig mAlphaConfig = new ToolConfig()
         {
@@ -219,6 +437,67 @@ namespace Wacom
 
 
         protected override ToolConfig SizeConfig => mSizeConfig; 
-        protected override ToolConfig AlphaConfig => mAlphaConfig; 
+        protected override ToolConfig AlphaConfig => mAlphaConfig;
+
+        protected override float PreviousSize { get; set; } = 18;
+        protected override float PreviousAlpha { get; set; } = 0.1f;
+
+        public override PathPointLayout GetLayoutMouse()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                            PathPoint.Property.Y,
+                                            PathPoint.Property.Size,
+                                            PathPoint.Property.Alpha);
+        }
+
+        public override PathPointLayout GetLayoutStylus()
+        {
+            return new PathPointLayout(PathPoint.Property.X,
+                                            PathPoint.Property.Y,
+                                            PathPoint.Property.Size,
+                                            PathPoint.Property.Alpha);
+        }
+
+        /// <summary>
+        /// Calculator delegate for input from a stylus (pen)
+        /// Calculates the path point properties based on pointer input.
+        /// </summary>
+        /// <param name="previous"></param>
+        /// <param name="current"></param>
+        /// <param name="next"></param>
+        /// <returns>PathPoint with calculated properties</returns>
+        protected override PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
+        {
+            var size = (!current.Force.HasValue)
+                            ? current.ComputeValueBasedOnSpeed(previous, next, MinSize, MaxSize, null, null, 0, MaxSpeed, v => (float)Math.Pow(v, 1.17))
+                            : ComputeValueBasedOnPressure(current, MinSize, MaxSize, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
+            if (!size.HasValue)
+            {
+                size = PreviousSize;
+            }
+            else
+            {
+                PreviousSize = size.Value;
+            }
+
+            // Change the intensity of alpha value by pressure of speed
+            var alpha = (!current.Force.HasValue)
+                ? current.ComputeValueBasedOnSpeed(previous, next, MinAlpha, MaxAlpha, null, null, 0f, 3500f, v => 1 - v)
+                : ComputeValueBasedOnPressure(current, MinAlpha, MaxAlpha, 0.0f, 1.0f);
+            if (!alpha.HasValue)
+            {
+                alpha = PreviousAlpha;
+            }
+            else
+            {
+                PreviousAlpha = alpha.Value;
+            }
+            PathPoint pp = new PathPoint(current.X, current.Y)
+            {
+                Size = size,
+                Alpha = alpha
+            };
+            return pp;
+        }
     }
 }

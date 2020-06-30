@@ -23,8 +23,14 @@ namespace Wacom
 
             public float minValue;
             public float maxValue;
+
+            public float? initValue;
+            public float? finalValue;
+
             public Func<float, float> remap;
         };
+
+        protected abstract float PreviousSize { get; set; }
 
         /// <summary>
         /// Configuration parameters to use in PathPoint Size calculations
@@ -43,93 +49,26 @@ namespace Wacom
         /// <remarks>For this sample, a fixed Alpha is used in <see cref="StylusInputCalculator"/></remarks>
         protected virtual float? Alpha => 1;
 
-        /// <summary>
-        /// Returns the layout and calculator method to use for input from a stylus (pen)
-        /// </summary>
-        public virtual (PathPointLayout, Calculator) GetLayoutAndCalulatorForStylus()
+        public abstract PathPointLayout GetLayoutMouse();
+        public abstract PathPointLayout GetLayoutStylus();
+        public abstract Calculator GetCalculatorMouse();
+        public abstract Calculator GetCalculatorStylus();
+
+        protected float? ComputeValueBasedOnPressure(PointerData pointerData, float minValue, float maxValue,
+            float minPressure = 100f, float maxPressure = 4000f, bool reverse = false, Func<float, float> remap = null)
         {
-            var layout = new PathPointLayout(PathPoint.Property.X,
-                                            PathPoint.Property.Y,
-                                            PathPoint.Property.Size,
-                                            PathPoint.Property.Rotation,
-                                            PathPoint.Property.ScaleX,
-                                            PathPoint.Property.OffsetX,
-                                            PathPoint.Property.Alpha);
-            return (layout, StylusInputCalculator);
-        }
+            if (!pointerData.Force.HasValue)
+                throw new InvalidOperationException("");
 
-        /// <summary>
-        /// Returns the layout and calculator method to use for input from the mouse
-        /// </summary>
-        public virtual (PathPointLayout, Calculator) GetLayoutAndCalulatorForMouse()
-        {
-            var layout = new PathPointLayout(PathPoint.Property.X,
-                                            PathPoint.Property.Y,
-                                            PathPoint.Property.Size,
-                                            PathPoint.Property.Alpha);
-            return (layout, MouseInputCalculator);
-        }
+            float normalizePressure = (reverse)
+                                    ? minPressure + (1 - pointerData.Force.Value) * (maxPressure - minPressure)
+                                    : minPressure + pointerData.Force.Value * (maxPressure - minPressure);
 
-
-        /// <summary>
-        /// Calculator delegate for input from a stylus (pen)
-        /// Calculates the path point properties based on pointer input.
-        /// </summary>
-        /// <param name="previous"></param>
-        /// <param name="current"></param>
-        /// <param name="next"></param>
-        /// <returns>PathPoint with calculated properties</returns>
-        private PathPoint StylusInputCalculator(PointerData previous, PointerData current, PointerData next)
-        {
-            var size = current.ComputeValueBasedOnSpeed(previous, next, SizeConfig.minValue, SizeConfig.maxValue, null, null, SizeConfig.minSpeed, SizeConfig.maxSpeed, SizeConfig.remap);
-            if (size == null)
-            {
-                return null;
-            }
-
-            float cosAltitudeAngle = current.AltitudeAngle.HasValue ? (float)Math.Cos(current.AltitudeAngle.Value) : 0;
-            float tiltScale = 0.5f + cosAltitudeAngle;
-
-            PathPoint pp = new PathPoint(current.X, current.Y)
-            {
-                Size = size,
-                Rotation = current.AzimuthAngle.HasValue ? current.ComputeNearestAzimuthAngle(previous) : 0, 
-                ScaleX = tiltScale,
-                OffsetX = 0.5f * size * tiltScale,
-                Alpha = this.Alpha
-            };
-
-            return pp;
-        }
-
-        /// <summary>
-        /// Calculator delegate for input from mouse input
-        /// Calculates the path point properties based on pointer input.
-        /// </summary>
-        /// <param name="previous"></param>
-        /// <param name="current"></param>
-        /// <param name="next"></param>
-        /// <returns>PathPoint with calculated properties</returns>
-        private PathPoint MouseInputCalculator(PointerData previous, PointerData current, PointerData next)
-        {
-            var size = current.ComputeValueBasedOnSpeed(previous, next, SizeConfig.minValue, SizeConfig.maxValue, null, null, SizeConfig.minSpeed, SizeConfig.maxSpeed, SizeConfig.remap);
-
-            if (size == null)
-            {
-                return null;
-            }
-
-            float? alpha = (AlphaConfig != null)
-                    ? current.ComputeValueBasedOnSpeed(previous, next, AlphaConfig.minValue, AlphaConfig.maxValue, null, null, AlphaConfig.minSpeed, AlphaConfig.maxSpeed, AlphaConfig.remap)
-                    : Alpha;
-
-            PathPoint pp = new PathPoint(current.X, current.Y)
-            {
-                Size = size,
-                Alpha = alpha
-            };
-
-            return pp;
+            var pressureClamped = Math.Min(Math.Max(normalizePressure, minPressure), maxPressure);
+            var k = (pressureClamped - minPressure) / (maxPressure - minPressure);
+            if (remap != null)
+                k = remap(k);
+            return minValue + k * (maxValue - minValue);
         }
 
     }
