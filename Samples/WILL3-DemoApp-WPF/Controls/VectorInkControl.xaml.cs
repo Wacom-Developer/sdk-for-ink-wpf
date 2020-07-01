@@ -249,10 +249,29 @@ namespace Wacom
 
         private DryStroke CreateDryStrokeFromVectorBrush(DecodedVectorInkBuilder decodedVectorInkBuilder, Wacom.Ink.Serialization.Model.VectorBrush vectorBrush, Stroke stroke)
         {
-            Wacom.Ink.Geometry.VectorBrush vb = new Wacom.Ink.Geometry.VectorBrush(vectorBrush.BrushPolygons.ToArray());
-            var result = decodedVectorInkBuilder.AddWholePath(stroke.Spline, stroke.Layout, vb);
+            Wacom.Ink.Geometry.VectorBrush vb;
 
-            PathPointProperties ppp = stroke.Style.PathPointProperties;
+            if (vectorBrush.BrushPolygons.Count > 0)
+            {
+                vb = new Wacom.Ink.Geometry.VectorBrush(vectorBrush.BrushPolygons.ToArray());
+            }
+            else if (vectorBrush.BrushPrototypeURIs.Count > 0)
+            {
+                List<BrushPolygon> brushPolygons = new List<BrushPolygon>(vectorBrush.BrushPrototypeURIs.Count);
+
+                foreach (var uri in vectorBrush.BrushPrototypeURIs)
+                {
+                    brushPolygons.Add(new BrushPolygon(uri.MinScale, ShapeUriResolver.ResolveShape(uri.ShapeUri)));
+                }
+
+                vb = new Wacom.Ink.Geometry.VectorBrush(brushPolygons.ToArray());
+            }
+            else
+            {
+                throw new ArgumentException("Missing vector brush information! Expected BrushPolygons, BrushPolyhedrons or BrushPrototypeURIs.");
+            }
+            var result = decodedVectorInkBuilder.AddWholePath(stroke.Spline, stroke.Layout, vb);
+            var ppp = stroke.Style.PathPointProperties;
 
             DryStroke dryStroke = new DryStroke
             {

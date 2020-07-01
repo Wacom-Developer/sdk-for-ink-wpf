@@ -92,6 +92,7 @@
       <DependentUpon>RasterInkControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Serializer.cs" />
+    <Compile Include="ShapeUriResolver.cs" />
     <Compile Include="Utils\DirtyRectManager.cs" />
     <Compile Include="Utils\PointerManager.cs" />
     <Compile Include="Utils\PolygonUtil.cs" />
@@ -222,8 +223,8 @@
     <Resource Include="Resources\btn_tools\btn_water_brush_lt.png" />
   </ItemGroup>
   <Choose>
-    <When Condition=" '$(Platform)' == 'x64' " >    
-      <ItemGroup>   
+    <When Condition=" '$(Platform)' == 'x64' ">
+      <ItemGroup>
         <PackageReference Include="Microsoft.Wpf.Interop.DirectX-x64">
           <Version>0.9.0-beta-22856</Version>
         </PackageReference>
