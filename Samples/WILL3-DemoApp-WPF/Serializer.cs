@@ -34,7 +34,7 @@ namespace Wacom
                 null, 0.0f, 0.0f, 0);
 
             mEnvironment.Properties["os.version.code"] = System.Environment.OSVersion.VersionString;
-            InkDocument.InputConfiguration.Environments.Add(mEnvironment);
+            mEnvironment.Seal();
 
             InkDocument.InkTree.Root = new StrokeGroupNode(Identifier.FromNewGuid());
         }
@@ -227,6 +227,10 @@ namespace Wacom
                 InkDocument.InputConfiguration.InputContexts.Add(inputContext);
             }
 
+            if (!InkDocument.InputConfiguration.Environments.Contains(mEnvironment))
+            {
+                InkDocument.InputConfiguration.Environments.Add(mEnvironment);
+            }
             return inputContextId;
         }
 

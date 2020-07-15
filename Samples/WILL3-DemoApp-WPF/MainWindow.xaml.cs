@@ -177,14 +177,12 @@ namespace Wacom
                     }
                     else if (inkDocument.Brushes.RasterBrushes.Count > 0)
                     {
-                        SetCurrentControl(inkCtrl = new RasterInkControl(RasterBrushStyle.Pencil, BrushColor));
-                        inkCtrl.LoadInk(inkDocument);
+                        SetCurrentControl(inkCtrl = new RasterInkControl(RasterBrushStyle.Pencil, BrushColor, inkDocument));
                         ToggleBrushButton(BtnPencil);
                     }
                     else if (inkDocument.Brushes.VectorBrushes.Count > 0)
                     {
-                        SetCurrentControl(inkCtrl = new VectorInkControl(VectorBrushStyle.Pen, BrushColor));
-                        inkCtrl.LoadInk(inkDocument);
+                        SetCurrentControl(inkCtrl = new VectorInkControl(VectorBrushStyle.Pen, BrushColor, inkDocument));
                         ToggleBrushButton(BtnPen);
                     }
                     else

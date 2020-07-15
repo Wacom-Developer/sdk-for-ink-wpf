@@ -84,6 +84,7 @@ namespace Wacom
 
         public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
         {
+            base.SetupForStylus(sd, graphics);
             SetBrushStyle(mBrushStyle, graphics);
             UpdatePipeline(ActiveTool.GetLayoutStylus(), ActiveTool.GetCalculatorStylus(), ActiveTool.ParticleSpacing);
         }

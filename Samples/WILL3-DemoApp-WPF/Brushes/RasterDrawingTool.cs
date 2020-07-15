@@ -1,10 +1,5 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Resources;
 
 
 using Wacom.Ink.Geometry;
@@ -124,49 +119,8 @@ namespace Wacom
 
         public PixelInfo(Uri uri)
         {
-            PixelData = GetPixelData(uri);
-            ImageFileData = GetImageFileData(uri);
-        }
-
-        /// <summary>
-        /// Loads bitmap pixel data from app resources
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        private static PixelData GetPixelData(Uri uri)
-        {
-            BitmapImage original = new BitmapImage(uri);
-            BitmapSource source = original;
-
-            if (original.Format != PixelFormats.Pbgra32)
-            {
-                source = new FormatConvertedBitmap(original, PixelFormats.Pbgra32, null, 0.0);
-            }
-
-            int stride = source.PixelWidth * 4;
-            int size = source.PixelHeight * stride;
-            byte[] pixels = new byte[size];
-            source.CopyPixels(pixels, stride, 0);
-
-            return new PixelData(pixels, (uint)source.PixelWidth, (uint)source.PixelHeight);
-        }
-
-        /// <summary>
-        /// Loads image file data from app resources
-        /// </summary>
-        private static byte[] GetImageFileData(Uri uri)
-        {
-            StreamResourceInfo sri = Application.GetResourceStream(uri);
-            if (sri != null)
-            {
-                using (Stream s = sri.Stream)
-                {
-                    byte[] data = new byte[s.Length];
-                    s.Read(data, 0, (int)s.Length);
-                    return data;
-                }
-            }
-            return null;
+            PixelData = Utils.GetPixelData(uri);
+            ImageFileData = Utils.GetImageFileData(uri);
         }
 
     }
@@ -181,6 +135,7 @@ namespace Wacom
         private const float MinAlpha = 0.1f;
         private const float MaxAlpha = 0.7f;
         private const float MaxSpeed = 15000;
+        private const float MinAltitudeAngle = 0.4f;
 
         private static readonly ToolConfig mSizeConfig = new ToolConfig()
         {
@@ -232,7 +187,10 @@ namespace Wacom
             return new PathPointLayout(PathPoint.Property.X,
                                         PathPoint.Property.Y,
                                         PathPoint.Property.Size,
-                                        PathPoint.Property.Alpha);
+                                        PathPoint.Property.Alpha,
+                                        PathPoint.Property.Rotation,
+                                        PathPoint.Property.OffsetX,
+                                        PathPoint.Property.OffsetY);
         }
 
         /// <summary>
@@ -245,19 +203,23 @@ namespace Wacom
         /// <returns>PathPoint with calculated properties</returns>
         protected override PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
         {
+            var cosAltitudeAngle = (float)Math.Cos(current.AltitudeAngle.Value);
+            var sinAzimuthAngle = (float)Math.Sin(current.AzimuthAngle.Value);
+            var cosAzimuthAngle = (float)Math.Cos(current.AzimuthAngle.Value);
+            // calculate the offset of the pencil tip due to tilted position
+            var x = sinAzimuthAngle * cosAltitudeAngle;
+            var y = cosAltitudeAngle * cosAzimuthAngle;
+            var offsetY = 5 * -x;
+            var offsetX = 5 * -y;
+            // compute the rotation
+            var rotation = current.ComputeNearestAzimuthAngle(previous);
+            // Normalize the tilt be minimum seen altitude angle and the maximum with the pen straight up
+            const float piBy2 = (float)(Math.PI / 2);
+            var tiltScale = Math.Min(1f, ((piBy2 - current.AltitudeAngle.Value) / (piBy2 - MinAltitudeAngle)));
 
-            var size = (!current.Force.HasValue)
-                           ? current.ComputeValueBasedOnSpeed(previous, next, mSizeConfig.minValue, mSizeConfig.maxValue,
-                                       mSizeConfig.initValue, mSizeConfig.finalValue, mSizeConfig.minSpeed, mSizeConfig.maxSpeed, mSizeConfig.remap)
-                           : ComputeValueBasedOnPressure(current, 30f, 80f, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
-            if (!size.HasValue)
-            {
-                size = PreviousSize;
-            }
-            else
-            {
-                PreviousSize = size.Value;
-            }
+            // now, based on the tilt of the pencil the size of the brush size is increasing, as the
+            // pencil tip is covering a larger area
+            var size = Math.Max(MinSize, MinSize + (MaxSize - MinSize) * tiltScale);
 
             // Change the intensity of alpha value by pressure of speed, if available else use speed
             var alpha = (!current.Force.HasValue)
@@ -275,7 +237,10 @@ namespace Wacom
             PathPoint pp = new PathPoint(current.X, current.Y)
             {
                 Size = size,
-                Alpha = alpha
+                Alpha = alpha,
+                Rotation = rotation,
+                OffsetX = offsetX,
+                OffsetY = offsetY
             };
             return pp;
         }
@@ -344,9 +309,12 @@ namespace Wacom
         public override PathPointLayout GetLayoutStylus()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                            PathPoint.Property.Y,
-                                            PathPoint.Property.Size,
-                                            PathPoint.Property.Alpha);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Rotation,
+                                        PathPoint.Property.OffsetX,
+                                        PathPoint.Property.OffsetY,
+                                        PathPoint.Property.Alpha);
         }
 
         /// <summary>
@@ -384,11 +352,23 @@ namespace Wacom
             {
                 PreviousAlpha = alpha.Value;
             }
+            var cosAltitudeAngle = (float)Math.Cos(current.AltitudeAngle.Value);
+            var sinAzimuthAngle = (float)Math.Sin(current.AzimuthAngle.Value);
+            var cosAzimuthAngle = (float)Math.Cos(current.AzimuthAngle.Value);
+            // calculate the offset of the pencil tip due to tilted position
+            var x = sinAzimuthAngle * cosAltitudeAngle;
+            var y = cosAltitudeAngle * cosAzimuthAngle;
+            var offsetY = 5 * -x;
+            var offsetX = 5 * -y;
 
+            var rotation = current.ComputeNearestAzimuthAngle(previous);
             PathPoint pp = new PathPoint(current.X, current.Y)
             {
                 Size = size,
-                Alpha = alpha
+                Alpha = alpha,
+                Rotation = rotation,
+                OffsetX = offsetX,
+                OffsetY = offsetY
             };
             return pp;
         }
@@ -445,17 +425,20 @@ namespace Wacom
         public override PathPointLayout GetLayoutMouse()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                            PathPoint.Property.Y,
-                                            PathPoint.Property.Size,
-                                            PathPoint.Property.Alpha);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Alpha);
         }
 
         public override PathPointLayout GetLayoutStylus()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                            PathPoint.Property.Y,
-                                            PathPoint.Property.Size,
-                                            PathPoint.Property.Alpha);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Alpha,
+                                        PathPoint.Property.Rotation,
+                                        PathPoint.Property.OffsetX,
+                                        PathPoint.Property.OffsetY);
         }
 
         /// <summary>
@@ -468,22 +451,28 @@ namespace Wacom
         /// <returns>PathPoint with calculated properties</returns>
         protected override PathPoint CalculatorForStylus(PointerData previous, PointerData current, PointerData next)
         {
-            var size = (!current.Force.HasValue)
-                            ? current.ComputeValueBasedOnSpeed(previous, next, MinSize, MaxSize, null, null, 0, MaxSpeed, v => (float)Math.Pow(v, 1.17))
-                            : ComputeValueBasedOnPressure(current, MinSize, MaxSize, 0.0f, 1.0f, false, v => (float)Math.Pow(v, 1.17));
-            if (!size.HasValue)
-            {
-                size = PreviousSize;
-            }
-            else
-            {
-                PreviousSize = size.Value;
-            }
+            // calculate the offset of the pencil tip due to tilted position
+            var cosAltitudeAngle = (float)Math.Cos(current.AltitudeAngle.Value);
+            var sinAzimuthAngle = (float)Math.Sin(current.AzimuthAngle.Value);
+            var cosAzimuthAngle = (float)Math.Cos(current.AzimuthAngle.Value);
+            var x = sinAzimuthAngle * cosAltitudeAngle;
+            var y = cosAltitudeAngle * cosAzimuthAngle;
+            var offsetY = 5f * -x;
+            var offsetX = 5f * -y;
+            // compute the rotation
+            var rotation = current.ComputeNearestAzimuthAngle(previous);
+            // Normalize the tilt be minimum seen altitude angle and the maximum with the pen straight up
+            const float piBy2 = (float)(Math.PI / 2);
+            var tiltScale = Math.Min(1f, (piBy2 - current.AltitudeAngle.Value) / (piBy2 - MinAltitudeAngle));
 
+
+            var size = Math.Max(MinSize, MinSize + (MaxSize - MinSize) * tiltScale);
+
+            //var rotation = current.ComputeNearestAzimuthAngle(previous);
             // Change the intensity of alpha value by pressure of speed
             var alpha = (!current.Force.HasValue)
                 ? current.ComputeValueBasedOnSpeed(previous, next, MinAlpha, MaxAlpha, null, null, 0f, 3500f, v => 1 - v)
-                : ComputeValueBasedOnPressure(current, MinAlpha, MaxAlpha, 0.0f, 1.0f);
+                : ComputeValueBasedOnPressure(current, 0.1f, 0.7f, 0.0f, 1.0f);
             if (!alpha.HasValue)
             {
                 alpha = PreviousAlpha;
@@ -495,7 +484,10 @@ namespace Wacom
             PathPoint pp = new PathPoint(current.X, current.Y)
             {
                 Size = size,
-                Alpha = alpha
+                Alpha = alpha,
+                Rotation = rotation,
+                OffsetX = offsetX,
+                OffsetY = offsetY
             };
             return pp;
         }

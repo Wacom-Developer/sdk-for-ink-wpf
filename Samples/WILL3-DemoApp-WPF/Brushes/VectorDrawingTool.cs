@@ -158,14 +158,17 @@ namespace Wacom
         public override PathPointLayout GetLayoutMouse()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size);
         }
         public override PathPointLayout GetLayoutStylus()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Rotation,
+                                        PathPoint.Property.ScaleX,
+                                        PathPoint.Property.OffsetX); 
         }
 
         public override Calculator GetCalculatorMouse()
@@ -207,9 +210,20 @@ namespace Wacom
                 size = PreviousSize;
             }
 
+
+            var cosAltitudeAngle = (float)Math.Abs(Math.Cos(current.AltitudeAngle.Value));
+
+            var tiltScale = 1.5f * cosAltitudeAngle;
+            var scaleX = 1.0f + tiltScale;
+            var offsetX = size * tiltScale;
+            var rotation = current.ComputeNearestAzimuthAngle(previous);
+
             PathPoint pp = new PathPoint(current.X, current.Y)
             {
                 Size = size,
+                Rotation = rotation,
+                ScaleX = scaleX,
+                OffsetX = offsetX
             };
             return pp;
         }
@@ -241,15 +255,18 @@ namespace Wacom
         public override PathPointLayout GetLayoutMouse()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size);
         }
 
         public override PathPointLayout GetLayoutStylus()
         {
             return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+                                        PathPoint.Property.Y,
+                                        PathPoint.Property.Size,
+                                        PathPoint.Property.Rotation,
+                                        PathPoint.Property.ScaleX,
+                                        PathPoint.Property.OffsetX);
         }
 
         public override Calculator GetCalculatorMouse()
@@ -291,9 +308,20 @@ namespace Wacom
                 size = PreviousSize;
             }
 
+
+            var cosAltitudeAngle = (float)Math.Abs(Math.Cos(current.AltitudeAngle.Value));
+
+            var tiltScale = 1.5f * cosAltitudeAngle;
+            var scaleX = 1.0f + tiltScale;
+            var offsetX = size * tiltScale;
+            var rotation = current.ComputeNearestAzimuthAngle(previous);
+
             PathPoint pp = new PathPoint(current.X, current.Y)
             {
                 Size = size,
+                Rotation = rotation,
+                ScaleX = scaleX,
+                OffsetX = offsetX
             };
             return pp;
         }

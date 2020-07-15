@@ -69,7 +69,7 @@ namespace Wacom
         #endregion
 
         #region Constructor
-        public VectorInkControl(VectorBrushStyle brushStyle, MediaColor brushColor)
+        public VectorInkControl(VectorBrushStyle brushStyle, MediaColor brushColor, InkModel inkDocument = null)
         {
             InitializeComponent();
 
@@ -77,6 +77,8 @@ namespace Wacom
             mInkBuilder = new VectorInkBuilder(brushStyle);
 
             BrushColor = brushColor;
+
+            LoadInk(inkDocument);
 
             StartProcessingInput();
         }
@@ -97,10 +99,13 @@ namespace Wacom
         /// <summary>
         /// Loads serialized ink
         /// </summary>
-        public override void LoadInk(InkModel inkDocument)
+        private void LoadInk(InkModel inkDocument)
         {
-            base.LoadInk(inkDocument);
-            mDryStrokes = new List<DryStroke>(RecreateDryStrokes(inkDocument));
+            if (inkDocument != null)
+            {
+                mDryStrokes = new List<DryStroke>(RecreateDryStrokes(inkDocument));
+                mSerializer.InkDocument = inkDocument;
+            }
         }
 
         #endregion
@@ -151,11 +156,6 @@ namespace Wacom
                     return;
                 }
             }
-
-            //if (!mInkBuilder.HasNewPoints)
-            //    return;
-
-            //var result = mInkBuilder.GetPolygons();
 
             PolygonUtil.ConvertPolygon(result.Addition, mAddedPolygon);
             PolygonUtil.ConvertPolygon(result.Prediction, mPredictedPolygon);
@@ -221,9 +221,14 @@ namespace Wacom
 
             DecodedVectorInkBuilder decodedVectorInkBuilder = new DecodedVectorInkBuilder();
 
-            foreach (var stroke in inkDataModel.Strokes)
+            IEnumerator<InkNode> enumerator = inkDataModel.InkTree.Root.GetRecursiveEnumerator();
+
+            while (enumerator.MoveNext())
             {
-                dryStrokes.Add(CreateDryStroke(decodedVectorInkBuilder, stroke, inkDataModel));
+                if ((enumerator.Current is StrokeNode strokeNode))
+                {
+                    dryStrokes.Add(CreateDryStroke(decodedVectorInkBuilder, strokeNode.Stroke, inkDataModel));
+                }
             }
 
             return dryStrokes;

@@ -82,7 +82,10 @@ namespace Wacom
         }
 
         public abstract void SetupForMouse(Graphics graphics);
-        public abstract void SetupForStylus(StylusPointDescription stylusPointDescription, Graphics graphics);
+        public virtual void SetupForStylus(StylusPointDescription sd, Graphics graphics)
+        {
+            GetStylusParams(sd);
+        }
 
         public void AddPointFromMouseEvent(Phase phase, long timestampMicroseconds, System.Windows.Point mp)
         {
@@ -134,7 +137,10 @@ namespace Wacom
 
             if (mScaleTiltX == 0)
             {
-                pointerData = new PointerData(x, y, phase, timestamp);
+                pointerData = new PointerData(x, y, phase, timestamp)
+                {
+                    Force = sp.PressureFactor
+                };
             }
             else
             {
@@ -170,7 +176,6 @@ namespace Wacom
 
                 mPointerDataList.Add(addition);
             }
-
             var geometry = mPathProducer.Add(phase, addition, prediction);
 
             mPathSegment.Add(phase, geometry.Addition, geometry.Prediction);

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -88,15 +90,6 @@ namespace Wacom
             RequestRender();
         }
 
-        /// <summary>
-        /// Loads serialized ink
-        /// </summary>
-        /// <param name="inkDocument"></param>
-        public virtual void LoadInk(InkModel inkDocument)
-        {
-            // initialize serializer with loaded ink
-            mSerializer.InkDocument = inkDocument;
-        }
         #endregion
 
         #region Abstract Methods
@@ -402,7 +395,7 @@ namespace Wacom
 
             DxImage.WindowOwner = (new System.Windows.Interop.WindowInteropHelper(Application.Current.MainWindow)).Handle;
             DxImage.OnRender = this.OnRender;
-            DxImage.RequestRender();
+            RequestRender();
         }
 
         /// <summary>
@@ -420,7 +413,7 @@ namespace Wacom
 
             SetSize();
 
-            DxImage.RequestRender();
+            RequestRender();
         }
 
         /// <summary>
@@ -439,6 +432,7 @@ namespace Wacom
 
                 mWpfImageLayer = mGraphics.CreateLayerFromSharedSurface(surfaceResourcePointer);
             }
+            Debug.Assert(mWpfImageLayer != null);
 
             RenderNewStrokeSegment();
 
@@ -465,6 +459,7 @@ namespace Wacom
             mRenderingContext.SetTarget(mAllStrokesLayer);
             mRenderingContext.ClearColor(Colors.Transparent);
 
+            //int n = 0;
             foreach (var stroke in AllStrokes)
             {
                 // Draw current stroke
@@ -480,11 +475,14 @@ namespace Wacom
                 // Blend Current Stroke to All Strokes Layer
                 mRenderingContext.SetTarget(mAllStrokesLayer);
                 mRenderingContext.DrawLayer(mCurrentStrokeLayer, null, Ink.Rendering.BlendMode.SourceOver);
+
+                //++n;
             }
 
             // Clear CurrentStroke to prepare for next draw
             mRenderingContext.SetTarget(mCurrentStrokeLayer);
             mRenderingContext.ClearColor(Colors.Transparent);
+
         }
 
         /// <summary>

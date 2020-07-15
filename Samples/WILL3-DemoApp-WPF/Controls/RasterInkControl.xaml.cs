@@ -32,12 +32,14 @@ namespace Wacom
             public ParticleList Path { get; }
             public StrokeConstants StrokeConstants { get; }
             public uint RandomSeed { get; }
+            public ParticleBrush ParticleBrush { get; set; }
 
-            public DryStroke(ParticleList path, uint seed, StrokeConstants StrokeParams)
+            public DryStroke(ParticleList path, uint seed, StrokeConstants StrokeParams, ParticleBrush particleBrush)
             {
                 Path = path;
                 RandomSeed = seed;
                 StrokeConstants = StrokeParams;
+                ParticleBrush = particleBrush;
             }
 
         }
@@ -76,8 +78,10 @@ namespace Wacom
 
         #endregion
 
+        InkModel mInkDocument;
+
         #region Constructor
-        public RasterInkControl(RasterBrushStyle brushStyle, MediaColor color)//
+        public RasterInkControl(RasterBrushStyle brushStyle, MediaColor color, InkModel inkDocument = null)
         {
             InitializeComponent();
 
@@ -87,6 +91,8 @@ namespace Wacom
             BrushColor = color;
 
             mBrushStyle = brushStyle;
+
+            mInkDocument = inkDocument;
 
             StartProcessingInput();
         }
@@ -107,10 +113,13 @@ namespace Wacom
         /// <summary>
         /// Loads serialized ink
         /// </summary>
-        public override void LoadInk(InkModel inkDocument)
+        private void LoadInk(InkModel inkDocument)
         {
-            base.LoadInk(inkDocument);
-            mDryStrokes = new List<DryStroke>(RecreateDryStrokes(inkDocument));
+            if (inkDocument != null)
+            {
+                mDryStrokes = new List<DryStroke>(RecreateDryStrokes(inkDocument));
+                mSerializer.InkDocument = inkDocument;
+            }
         }
 
         #endregion
@@ -145,6 +154,10 @@ namespace Wacom
         protected override void DoControlLoaded()
         {
             CreateBrush(mBrushStyle);
+            if (mInkDocument != null)
+            {
+                LoadInk(mInkDocument);
+            }
         }
 
         private void InkBuilder_LayoutUpdated(object sender, EventArgs e)
@@ -228,7 +241,7 @@ namespace Wacom
                     uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
                     ParticleList path = new ParticleList();
                     path.Assign(points, channelMask);
-                    mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone()));
+                    mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone(), mInkBuilder.Brush));
                 }
             }
 
@@ -247,7 +260,7 @@ namespace Wacom
         {
             DryStroke stroke = (DryStroke)o;
 
-            mRenderingContext.DrawParticleStroke(stroke.Path, stroke.StrokeConstants, mInkBuilder.Brush, Ink.Rendering.BlendMode.SourceOver, stroke.RandomSeed);
+            mRenderingContext.DrawParticleStroke(stroke.Path, stroke.StrokeConstants, stroke.ParticleBrush, Ink.Rendering.BlendMode.SourceOver, stroke.RandomSeed);
         }
 
 
@@ -264,11 +277,15 @@ namespace Wacom
 
             DecodedRasterInkBuilder decodedRasterInkBuilder = new DecodedRasterInkBuilder();
 
-            foreach (var stroke in inkDataModel.Strokes)
-            {
-                dryStrokes.Add(CreateDryStroke(decodedRasterInkBuilder, stroke, inkDataModel));
-            }
+            IEnumerator<InkNode> enumerator = inkDataModel.InkTree.Root.GetRecursiveEnumerator();
 
+            while (enumerator.MoveNext())
+            {
+                if ((enumerator.Current is StrokeNode strokeNode))
+                {
+                    dryStrokes.Add(CreateDryStroke(decodedRasterInkBuilder, strokeNode.Stroke, inkDataModel));
+                }
+            }
             return dryStrokes;
         }
 
@@ -311,7 +328,18 @@ namespace Wacom
                             ppp.Green.HasValue ? (byte)(ppp.Green * 255.0f) : byte.MinValue,
                             ppp.Blue.HasValue ? (byte)(ppp.Blue * 255.0f) : byte.MinValue)
             };
-            DryStroke dryStroke = new DryStroke(particleList, stroke.Style.RandomSeed, strokeConstants);
+
+            ParticleBrush particleBrush = new ParticleBrush
+            {
+                FillTexture = mGraphics.CreateTexture(Utils.GetPixelData(rasterBrush.FillTexture)),
+                FillTileSize = new Size(rasterBrush.FillWidth, rasterBrush.FillHeight),
+                RotationMode = (ParticleRotationMode)rasterBrush.RotationMode,
+                Scattering = rasterBrush.Scattering,
+                ShapeTexture = mGraphics.CreateTexture(Utils.GetPixelData(rasterBrush.ShapeTextures[0]))
+            };
+
+
+            DryStroke dryStroke = new DryStroke(particleList, stroke.Style.RandomSeed, strokeConstants, particleBrush);
 
             return dryStroke;
         }
