@@ -150,12 +150,14 @@ namespace Wacom
                 if (mInkBuilder.HasNewPoints)
                 {
                     result = mInkBuilder.GetPolygons();
+                    if (result.Addition == null || result.Prediction == null)
+                        return;
                 }
                 else
                 {
                     return;
                 }
-            }
+            }                                
 
             PolygonUtil.ConvertPolygon(result.Addition, mAddedPolygon);
             PolygonUtil.ConvertPolygon(result.Prediction, mPredictedPolygon);
