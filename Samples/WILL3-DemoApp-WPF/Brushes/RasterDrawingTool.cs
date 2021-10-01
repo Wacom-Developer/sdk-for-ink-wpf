@@ -174,23 +174,23 @@ namespace Wacom
         protected override float PreviousSize { get; set; } = 6;
         protected override float PreviousAlpha { get; set; } = 0.2f;
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size,
-                                    PathPoint.Property.Alpha);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Alpha;
         }
 
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Alpha,
-                                        PathPoint.Property.Rotation,
-                                        PathPoint.Property.OffsetX,
-                                        PathPoint.Property.OffsetY);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Alpha |
+                    LayoutMask.Rotation |
+                    LayoutMask.OffsetX |
+                    LayoutMask.OffsetY;
         }
 
         /// <summary>
@@ -298,23 +298,23 @@ namespace Wacom
         protected override float PreviousSize { get; set; } = 28;
         protected override float PreviousAlpha { get; set; } = 0.02f;
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size,
-                                    PathPoint.Property.Alpha);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Alpha;
         }
 
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Rotation,
-                                        PathPoint.Property.OffsetX,
-                                        PathPoint.Property.OffsetY,
-                                        PathPoint.Property.Alpha);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Rotation |
+                    LayoutMask.OffsetX |
+                    LayoutMask.OffsetY |
+                    LayoutMask.Alpha;
         }
 
         /// <summary>
@@ -422,23 +422,23 @@ namespace Wacom
         protected override float PreviousSize { get; set; } = 18;
         protected override float PreviousAlpha { get; set; } = 0.1f;
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Alpha);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Alpha;
         }
 
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Alpha,
-                                        PathPoint.Property.Rotation,
-                                        PathPoint.Property.OffsetX,
-                                        PathPoint.Property.OffsetY);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Alpha |
+                    LayoutMask.Rotation |
+                    LayoutMask.OffsetX |
+                    LayoutMask.OffsetY;
         }
 
         /// <summary>

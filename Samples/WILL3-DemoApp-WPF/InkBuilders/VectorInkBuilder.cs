@@ -122,11 +122,11 @@ namespace Wacom
             UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.Shape);
         }
 
-        public void UpdatePipeline(PathPointLayout layout, Calculator calculator, VectorBrush brush)
+        public void UpdatePipeline(LayoutMask layout, Calculator calculator, VectorBrush brush)
         {
             bool layoutChanged = false;
 
-            if ((Layout == null) || (layout.ChannelMask != Layout.ChannelMask))
+            if (layout != Layout)
             {
                 Layout = layout;
                 layoutChanged = true;
@@ -142,7 +142,7 @@ namespace Wacom
 
             if (mSmoothingFilter == null || layoutChanged)
             {
-                mSmoothingFilter = new SmoothingFilter(Layout.Count)
+                mSmoothingFilter = new SmoothingFilter()
                 {
                     KeepAllData = true
                 };
@@ -150,7 +150,7 @@ namespace Wacom
 
             if (SplineProducer == null || layoutChanged)
             {
-                SplineProducer = new SplineProducer(Layout)
+                SplineProducer = new SplineProducer()
                 {
                     KeepAllData = true
                 };
@@ -158,7 +158,7 @@ namespace Wacom
 
             if (SplineInterpolator == null || layoutChanged)
             {
-                SplineInterpolator = new CurvatureBasedInterpolator(Layout)
+                SplineInterpolator = new CurvatureBasedInterpolator()
                 {
                     KeepAllData = true
                 };
@@ -166,7 +166,7 @@ namespace Wacom
 
             if (BrushApplier == null || (brush != BrushApplier.Prototype) || layoutChanged)
             {
-                BrushApplier = new BrushApplier(Layout, brush)
+                BrushApplier = new BrushApplier(brush)
                 {
                     KeepAllData = true
                 };

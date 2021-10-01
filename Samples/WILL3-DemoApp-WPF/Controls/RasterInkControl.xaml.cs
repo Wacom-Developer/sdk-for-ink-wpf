@@ -177,7 +177,7 @@ namespace Wacom
         #region Stroke Handling
         protected override void RenderNewStrokeSegment()
         {
-            ProcessorResult<List<float>> result;
+            ProcessorResult<Path> result;
 
             lock (mInkBuilderLock)
             {
@@ -191,10 +191,11 @@ namespace Wacom
                 }
             }
 
-            uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
+            if (result.Addition == null && result.Prediction == null)
+                return;
 
-            mAddedInterpolatedSpline.Assign(result.Addition, channelMask);
-            mPredictedInterpolatedSpline.Assign(result.Prediction, channelMask);
+            mAddedInterpolatedSpline.Assign(result.Addition, (uint)result.Addition.LayoutMask);
+            mPredictedInterpolatedSpline.Assign(result.Prediction, (uint)result.Prediction.LayoutMask);
 
             ParticleBrush brush = mInkBuilder.Brush;
 
@@ -238,9 +239,8 @@ namespace Wacom
 
                 if (points.Count > 0)
                 {
-                    uint channelMask = (uint)mInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
                     ParticleList path = new ParticleList();
-                    path.Assign(points, channelMask);
+                    path.Assign(points, (uint)allData.LayoutMask);
                     mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone(), mInkBuilder.Brush));
                 }
             }
@@ -309,24 +309,23 @@ namespace Wacom
 
         private DryStroke CreateDryStrokeFromRasterBrush(DecodedRasterInkBuilder decodedRasterInkBuilder, RasterBrush rasterBrush, Stroke stroke)
         {
-            var result = decodedRasterInkBuilder.AddWholePath(stroke.Spline.Data, rasterBrush.Spacing, stroke.Layout);
+            var result = decodedRasterInkBuilder.AddWholePath(stroke.Spline.ToSpline().Path, rasterBrush.Spacing);
 
             List<float> points = new List<float>(result.Addition);
 
-            uint channelMask = (uint)decodedRasterInkBuilder.SplineInterpolator.InterpolatedSplineLayout.ChannelMask;
 
             ParticleList particleList = new ParticleList();
-            particleList.Assign(points, channelMask);
+            particleList.Assign(points, (uint)result.Addition.LayoutMask);
 
             PathPointProperties ppp = stroke.Style.PathPointProperties;
 
             StrokeConstants strokeConstants = new StrokeConstants
             {
                 Color = MediaColor.FromArgb(
-                            ppp.Alpha.HasValue ? (byte)(ppp.Alpha * 255.0f) : byte.MinValue,
-                            ppp.Red.HasValue ? (byte)(ppp.Red * 255.0f) : byte.MinValue,
-                            ppp.Green.HasValue ? (byte)(ppp.Green * 255.0f) : byte.MinValue,
-                            ppp.Blue.HasValue ? (byte)(ppp.Blue * 255.0f) : byte.MinValue)
+                            (byte)(ppp.Alpha * 255.0f),
+                            (byte)(ppp.Red * 255.0f),
+                            (byte)(ppp.Green * 255.0f),
+                            (byte)(ppp.Blue * 255.0f))
             };
 
             ParticleBrush particleBrush = new ParticleBrush
@@ -339,7 +338,7 @@ namespace Wacom
             };
 
 
-            DryStroke dryStroke = new DryStroke(particleList, stroke.Style.RandomSeed, strokeConstants, particleBrush);
+            DryStroke dryStroke = new DryStroke(particleList, stroke.RandomSeed, strokeConstants, particleBrush);
 
             return dryStroke;
         }
@@ -358,16 +357,17 @@ namespace Wacom
 
             #endregion
 
-            public ProcessorResult<List<float>> AddWholePath(List<float> path, float spacing, PathPointLayout layout)
+            public ProcessorResult<Path> AddWholePath(Path path, float spacing)
             {
                 if (path.Count == 0)
                     throw new Exception("Path has no points!");
 
-                SplineInterpolator = new DistanceBasedInterpolator(layout, spacing, splitCount, true, true);
+                SplineInterpolator = new DistanceBasedInterpolator(spacing, splitCount, true, true);
 
-                var iterpolatedPoints = SplineInterpolator.Add(true, true, new Spline(layout.ChannelMask, path), new Spline(layout.ChannelMask));
+                var addition = new Spline(path);
+                var prediction = new Spline(addition.LayoutMask);
 
-                return iterpolatedPoints;
+                return SplineInterpolator.Add(true, true, addition, prediction);
             }
         }
 

@@ -277,17 +277,17 @@ namespace Wacom
             {
                 throw new ArgumentException("Missing vector brush information! Expected BrushPolygons, BrushPolyhedrons or BrushPrototypeURIs.");
             }
-            var result = decodedVectorInkBuilder.AddWholePath(stroke.Spline, stroke.Layout, vb);
+            var result = decodedVectorInkBuilder.AddWholePath(stroke.Spline.ToSpline(), vb);
             var ppp = stroke.Style.PathPointProperties;
 
             DryStroke dryStroke = new DryStroke
             {
                 mPolygon = PolygonUtil.ConvertPolygon(result.Addition),
                 mColor = MediaColor.FromArgb(
-                            ppp.Alpha.HasValue ? (byte)(ppp.Alpha * 255.0f) : byte.MinValue,
-                            ppp.Red.HasValue ? (byte)(ppp.Red * 255.0f) : byte.MinValue,
-                            ppp.Green.HasValue ? (byte)(ppp.Green * 255.0f) : byte.MinValue,
-                            ppp.Blue.HasValue ? (byte)(ppp.Blue * 255.0f) : byte.MinValue)
+                            (byte)(ppp.Alpha * 255.0f),
+                            (byte)(ppp.Red * 255.0f),
+                            (byte)(ppp.Green * 255.0f),
+                            (byte)(ppp.Blue * 255.0f))
             };
 
             return dryStroke;
@@ -299,10 +299,10 @@ namespace Wacom
             private PolygonMerger mPolygonMerger = new PolygonMerger();
             private readonly PolygonSimplifier mPolygonSimplifier = new PolygonSimplifier(0.1f);
 
-            public ProcessorResult<List<List<Vector2>>> AddWholePath(Spline path, PathPointLayout layout, Wacom.Ink.Geometry.VectorBrush vectorBrush)
+            public ProcessorResult<List<List<Vector2>>> AddWholePath(Spline path, Wacom.Ink.Geometry.VectorBrush vectorBrush)
             {
-                var splineInterpolator = new CurvatureBasedInterpolator(layout);
-                var brushApplier = new BrushApplier(layout, vectorBrush);
+                var splineInterpolator = new CurvatureBasedInterpolator();
+                var brushApplier = new BrushApplier(vectorBrush);
 
                 var points = splineInterpolator.Add(true, true, path, null);
 

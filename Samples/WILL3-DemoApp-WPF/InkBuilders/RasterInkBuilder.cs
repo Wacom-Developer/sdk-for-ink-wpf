@@ -66,7 +66,7 @@ namespace Wacom
         /// <returns>Tuple containing added data (Item1) and predicted or preliminary data (Item2)</returns>
         /// <remarks>Passes accumulated path segment (from PathProducer) through remaining stages of 
         /// the raster ink pipeline - Smoother, SplineProducer & SplineInterpolator</remarks>
-        public ProcessorResult<List<float>> GetPath()
+        public ProcessorResult<Path> GetPath()
         {
             var smoothPath = mSmoothingFilter.Add(mPathSegment.IsFirst, mPathSegment.IsLast, mPathSegment.AccumulatedAddition, mPathSegment.LastPrediction);
 
@@ -101,12 +101,12 @@ namespace Wacom
             UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
         }
 
-        public void UpdatePipeline(PathPointLayout layout, Calculator calculator, float spacing)
+        public void UpdatePipeline(LayoutMask layout, Calculator calculator, float spacing)
         {
             bool layoutChanged = false;
             bool otherChange = false;
 
-            if ((Layout == null) || (layout.ChannelMask != Layout.ChannelMask))
+            if (layout != Layout)
             {
                 Layout = layout;
                 layoutChanged = true;
@@ -120,7 +120,7 @@ namespace Wacom
 
             if (mSmoothingFilter == null || layoutChanged)
             {
-                mSmoothingFilter = new SmoothingFilter(Layout.Count)
+                mSmoothingFilter = new SmoothingFilter()
                 {
                     KeepAllData = true
                 };
@@ -129,13 +129,13 @@ namespace Wacom
 
             if (SplineProducer == null || layoutChanged)
             {
-                SplineProducer = new SplineProducer(Layout, true);
+                SplineProducer = new SplineProducer(true);
                 otherChange = true;
             }
 
             if (SplineInterpolator == null || layoutChanged)
             {
-                SplineInterpolator = new DistanceBasedInterpolator(Layout, spacing, splitCount, true, true, true);
+                SplineInterpolator = new DistanceBasedInterpolator(spacing, splitCount, true, true, true);
                 otherChange = true;
             }
             ((DistanceBasedInterpolator)SplineInterpolator).Spacing = spacing;
@@ -156,8 +156,6 @@ namespace Wacom
                                             ((DistanceBasedInterpolator)SplineInterpolator).Spacing,
                                             ActiveTool.Fill.ImageFileData,
                                             new List<byte[]>() { ActiveTool.Shape.ImageFileData },
-                                            new List<string>(),
-                                            string.Empty,
                                             Wacom.Ink.Serialization.Model.BlendMode.SourceOver
                                            );
         }

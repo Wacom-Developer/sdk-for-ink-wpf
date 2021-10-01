@@ -71,18 +71,18 @@ namespace Wacom
 
         protected override float PreviousSize { get; set; } = 1.5f;
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size;
         }
 
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                    PathPoint.Property.Y,
-                                    PathPoint.Property.Size);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size;
         }
 
         public override Calculator GetCalculatorMouse()
@@ -155,20 +155,20 @@ namespace Wacom
 
         protected override float PreviousSize { get; set; } = 2f;
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size;
         }
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Rotation,
-                                        PathPoint.Property.ScaleX,
-                                        PathPoint.Property.OffsetX); 
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Rotation |
+                    LayoutMask.ScaleX |
+                    LayoutMask.OffsetX;
         }
 
         public override Calculator GetCalculatorMouse()
@@ -252,21 +252,21 @@ namespace Wacom
         protected override float PreviousSize { get; set; } = 10;
 
 
-        public override PathPointLayout GetLayoutMouse()
+        public override LayoutMask GetLayoutMouse()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size;
         }
 
-        public override PathPointLayout GetLayoutStylus()
+        public override LayoutMask GetLayoutStylus()
         {
-            return new PathPointLayout(PathPoint.Property.X,
-                                        PathPoint.Property.Y,
-                                        PathPoint.Property.Size,
-                                        PathPoint.Property.Rotation,
-                                        PathPoint.Property.ScaleX,
-                                        PathPoint.Property.OffsetX);
+            return LayoutMask.X |
+                    LayoutMask.Y |
+                    LayoutMask.Size |
+                    LayoutMask.Rotation |
+                    LayoutMask.ScaleX |
+                    LayoutMask.OffsetX;
         }
 
         public override Calculator GetCalculatorMouse()

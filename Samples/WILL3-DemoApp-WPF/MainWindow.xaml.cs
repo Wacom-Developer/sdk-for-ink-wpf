@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -149,7 +150,7 @@ namespace Wacom
                 using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDlg.FileName, FileMode.Create)))
                 {
                     var inkCtrl = NavFrame.Content as InkControlBase;
-                    writer.Write(Will3Codec.Encode(inkCtrl.Serializer.InkDocument));
+                    writer.Write(UimCodec.Encode(inkCtrl.Serializer.InkDocument));
                 }
             }
         }
@@ -168,19 +169,19 @@ namespace Wacom
                     byte[] buff = new byte[info.Length];
 
                     reader.Read(buff, 0, (int)info.Length);
-                    var inkDocument = Will3Codec.Decode(buff);
+                    var inkDocument = UimCodec.Decode(buff);
                     InkControlBase inkCtrl = null;
 
-                    if (inkDocument.Brushes.RasterBrushes.Count > 0 && inkDocument.Brushes.VectorBrushes.Count > 0)
+                    if (inkDocument.Brushes.RasterBrushes.Any() && inkDocument.Brushes.VectorBrushes.Any())
                     {
                         MessageBox.Show("This sample does not support serialization of both raster and vector brushes");
                     }
-                    else if (inkDocument.Brushes.RasterBrushes.Count > 0)
+                    else if (inkDocument.Brushes.RasterBrushes.Any())
                     {
                         SetCurrentControl(inkCtrl = new RasterInkControl(RasterBrushStyle.Pencil, BrushColor, inkDocument));
                         ToggleBrushButton(BtnPencil);
                     }
-                    else if (inkDocument.Brushes.VectorBrushes.Count > 0)
+                    else if (inkDocument.Brushes.VectorBrushes.Any())
                     {
                         SetCurrentControl(inkCtrl = new VectorInkControl(VectorBrushStyle.Pen, BrushColor, inkDocument));
                         ToggleBrushButton(BtnPen);

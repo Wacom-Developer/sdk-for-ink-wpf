@@ -21,7 +21,7 @@ namespace Wacom
         /// <summary>
         /// Specifies the properties of each PathPoint used by concrete InkBuilders
         /// </summary>
-        public PathPointLayout Layout { get; protected set; }
+        public LayoutMask Layout { get; protected set; }
 
         /// <summary>
         /// Creates a WILL 3 path from pointer input data
@@ -176,7 +176,7 @@ namespace Wacom
 
                 mPointerDataList.Add(addition);
             }
-            var geometry = mPathProducer.Add(phase, addition, prediction);
+            var geometry = mPathProducer.Add(addition, prediction);
 
             mPathSegment.Add(phase, geometry.Addition, geometry.Prediction);
 

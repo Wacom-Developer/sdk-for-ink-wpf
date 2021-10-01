@@ -31,7 +31,7 @@ namespace Wacom
             mTimestampSensorChannel = new SensorChannel(
                 InkSensorType.Timestamp,
                 InkSensorMetricType.Time,
-                null, 0.0f, 0.0f, 0);
+                0, 0.0f, 0.0f, 0);
 
             mEnvironment.Properties["os.version.code"] = System.Environment.OSVersion.VersionString;
             mEnvironment.Seal();
@@ -99,16 +99,13 @@ namespace Wacom
 
             Spline spline = inkBuilder.SplineProducer.AllData;
 
-            PathPointLayout layout = inkBuilder.Layout;
-
             Stroke stroke = new Stroke(
                 Identifier.FromNewGuid(),
                 spline.Clone(),
                 style,
-                layout,
                 sensorData.Id);
 
-            StrokeNode strokeNode = new StrokeNode(Identifier.FromNewGuid(), stroke);
+            StrokeNode strokeNode = new StrokeNode(stroke);
             InkDocument.InkTree.Root.Add(strokeNode);
 
         }
@@ -201,9 +198,9 @@ namespace Wacom
             const uint precision = 2;
 
             List<SensorChannel> sensorChannels = new List<SensorChannel>();
-            sensorChannels.Add(new SensorChannel(InkSensorType.X, InkSensorMetricType.Length, null, 0.0f, 0.0f, precision));
-            sensorChannels.Add(new SensorChannel(InkSensorType.Y, InkSensorMetricType.Length, null, 0.0f, 0.0f, precision));
-            sensorChannels.Add(new SensorChannel(InkSensorType.Timestamp, InkSensorMetricType.Time, null, 0.0f, 0.0f, 0));
+            sensorChannels.Add(new SensorChannel(InkSensorType.X, InkSensorMetricType.Length, 0, 0.0f, 0.0f, precision));
+            sensorChannels.Add(new SensorChannel(InkSensorType.Y, InkSensorMetricType.Length, 0, 0.0f, 0.0f, precision));
+            sensorChannels.Add(new SensorChannel(InkSensorType.Timestamp, InkSensorMetricType.Time, 0, 0.0f, 0.0f, 0));
 
             SensorChannelsContext sensorChannelsContext = new SensorChannelsContext(
                 inkInputProvider,

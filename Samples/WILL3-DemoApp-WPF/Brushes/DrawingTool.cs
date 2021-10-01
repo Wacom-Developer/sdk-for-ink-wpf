@@ -44,13 +44,13 @@ namespace Wacom
         protected virtual ToolConfig AlphaConfig => null;
 
         /// <summary>
-        /// Fixed value to set PathPointLayout Alpha 
+        /// Fixed value to set LayoutMask Alpha 
         /// </summary>
         /// <remarks>For this sample, a fixed Alpha is used in <see cref="StylusInputCalculator"/></remarks>
         protected virtual float? Alpha => 1;
 
-        public abstract PathPointLayout GetLayoutMouse();
-        public abstract PathPointLayout GetLayoutStylus();
+        public abstract LayoutMask GetLayoutMouse();
+        public abstract LayoutMask GetLayoutStylus();
         public abstract Calculator GetCalculatorMouse();
         public abstract Calculator GetCalculatorStylus();
 
