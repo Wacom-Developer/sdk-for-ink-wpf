@@ -27,8 +27,8 @@ The SDK contains the NuGet packages required by the application code.
 > Ultimately the packages will be available in the public NuGet.org Gallery provided for the .NET community.
 > Until they are in place the same result can be achieved by using a local copy:
 
-•	copy the SDK *NuGets* folder alongside the sample project code
-•	follow the instructions below to add the NugGet packages to the project references
+-	copy the SDK *NuGets* folder alongside the sample project code
+-	follow the instructions below to add the NugGet packages to the project references
     
 
 ## Sample Application
@@ -60,17 +60,20 @@ Build the application in Visual Studio 2019.
 - Options are included to clear the display and to save, or read a WILL Universal ink file
 
 
-
 ![Demo app screenshot](media/will3-demo-wpf.png)
+
+### Export utilities
+
+The Export Utilities for Windows can be accessed through the Export drop-down window in the top bar of the WILL SDK for Ink.
+
+Selecting the Export option will open the drop-down, giving the user an option to export to a format of their preference.
+
+![Demo app export](media/will3-demo-wpf-export.png)
+
+The user may then save the exported file to a location of their choosing.
 
 ## API Reference
 
 Having installed the NuGet packages the API can be viewed through IntelliSense or Object Browser in Visual Studio.
 
 ----
-
-        
-
-
-
-

@@ -165,7 +165,14 @@
                         </Image.Style>
                     </Image>
                 </ToggleButton>
-
+                <Menu DockPanel.Dock="Bottom" Background="Transparent" Height="50" VerticalAlignment="Center">
+                    <MenuItem Header="Export" Height="50">
+                        <MenuItem Header="Export to PDF" Click="ExportToPDF_Click"/>
+                        <MenuItem Header="Export to SVG" Click="ExportToSVG_Click"/>
+                        <MenuItem Header="Export to PNG" Click="ExportToPNG_Click"/>
+                        <MenuItem Header="Export to JPEG" Click="ExportToJPEG_Click"/>
+                    </MenuItem>
+                </Menu>
             </ToolBar>
         </ToolBarTray>
         <ContentControl x:Name="NavFrame"/>

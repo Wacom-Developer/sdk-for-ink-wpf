@@ -17,6 +17,8 @@ using Wacom.Ink.Serialization;
 
 // Alias to avoid ambiguity with Wacom.Ink.Serialization.Model.Color
 using MediaColor = System.Windows.Media.Color;
+using Wacom.Export;
+using System.Text;
 
 namespace Wacom
 {
@@ -193,6 +195,70 @@ namespace Wacom
                     }
                 }
 
+            }
+        }
+
+        private void ExportToPDF_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDlg = new SaveFileDialog()
+            {
+                Filter = "PDF (*.pdf)|*pdf"
+            };
+            if (saveFileDlg.ShowDialog() == true)
+            {
+                using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDlg.FileName, FileMode.Create)))
+                {
+                    PDFExporter pdfExporter = new PDFExporter();
+                    var inkCtrl = NavFrame.Content as InkControlBase;
+                    var pdf = pdfExporter.exportToPDF(inkCtrl.Serializer.InkDocument, PDFExporter.PDF_A4_WIDTH, PDFExporter.PDF_A4_HEIGHT, true);
+                    writer.Write(Encoding.UTF8.GetBytes(pdf));
+                }
+            }
+        }
+
+        private void ExportToSVG_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDlg = new SaveFileDialog()
+            {
+                Filter = "SVG (*.svg)|*svg"
+            };
+            if (saveFileDlg.ShowDialog() == true)
+            {
+                using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDlg.FileName, FileMode.Create)))
+                {
+                    SVGExporter svgExporter = new SVGExporter();
+                    var inkCtrl = NavFrame.Content as InkControlBase;
+                    var svg = svgExporter.exportToSVG(inkCtrl.Serializer.InkDocument, (float)Width, (float)Height, true);
+                    writer.Write(Encoding.UTF8.GetBytes(svg));
+                }
+            }
+        }
+
+        private void ExportToPNG_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDlg = new SaveFileDialog()
+            {
+                Filter = "PNG (*.png)|*png"
+            };
+            if (saveFileDlg.ShowDialog() == true)
+            {
+                InkControlBase inkCtrl = NavFrame.Content as InkControlBase;
+                System.Drawing.Bitmap bmp = inkCtrl?.toBitmap(Colors.Transparent);
+                bmp.Save(saveFileDlg.FileName, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+
+        private void ExportToJPEG_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDlg = new SaveFileDialog()
+            {
+                Filter = "JPEG (*.jpeg)|*jpeg"
+            };
+            if (saveFileDlg.ShowDialog() == true)
+            {
+                InkControlBase inkCtrl = NavFrame.Content as InkControlBase;
+                System.Drawing.Bitmap bmp = inkCtrl?.toBitmap(Colors.White);
+                bmp.Save(saveFileDlg.FileName, System.Drawing.Imaging.ImageFormat.Jpeg);
             }
         }
     }

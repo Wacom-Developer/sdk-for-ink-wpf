@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
@@ -566,5 +567,28 @@ namespace Wacom
         }
 
         #endregion
+
+        public System.Drawing.Bitmap toBitmap(System.Windows.Media.Color backgroundColor)
+        {
+            Rect bounds = new Rect(0, 0, Width, Height);
+
+            mRenderingContext.SetTarget(mSceneLayer);
+            mRenderingContext.ClearColor(backgroundColor);
+
+            // Blend stroke to Scene Layer
+            mRenderingContext.SetTarget(mSceneLayer);
+            mRenderingContext.DrawLayer(mAllStrokesLayer, null, Ink.Rendering.BlendMode.SourceOver);
+
+            PixelData pixelData = mRenderingContext.ReadPixels(ref bounds);
+            System.Drawing.Bitmap bmp = new System.Drawing.Bitmap((int)pixelData.m_pixelWidth, (int)pixelData.m_pixelHeight, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+            BitmapData bmpData = bmp.LockBits(
+                       new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height),
+                       ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+            System.Runtime.InteropServices.Marshal.Copy(pixelData.Data, 0, bmpData.Scan0, pixelData.Data.Length);
+            bmp.UnlockBits(bmpData);
+
+            return bmp;
+        }
     }
 }
