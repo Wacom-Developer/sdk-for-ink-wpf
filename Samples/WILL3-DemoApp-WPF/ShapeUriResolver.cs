@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Wacom.Ink.Geometry;
-using Wacom.Ink.Serialization.Model.Enums;
+using Wacom.Ink.Serialization.Model;
 
 namespace Wacom
 {
