@@ -8,6 +8,7 @@ using Wacom.Ink.Rendering;
 namespace Wacom
 {
 	using DIPolygon = List<Vector2>;
+
 	public static class PolygonUtil
 	{
 		static public Polygon ConvertPolygon(List<DIPolygon> src)

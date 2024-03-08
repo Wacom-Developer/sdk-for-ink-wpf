@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-
 using Wacom.Ink.Geometry;
 using Wacom.Ink.Rendering;
 using Wacom.Ink.Serialization.Model;
@@ -79,26 +78,6 @@ namespace Wacom
 			return mStockRasterInkBuilder.SplineAccumulator.Accumulated.Clone();
 		}
 
-		/*        /// <summary>
-				/// Transform accumulated pointer input to ink geometry
-				/// </summary>
-				/// <returns>Tuple containing added data (Item1) and predicted or preliminary data (Item2)</returns>
-				/// <remarks>Passes accumulated path segment (from PathProducer) through remaining stages of 
-				/// the raster ink pipeline - Smoother, SplineProducer & SplineInterpolator</remarks>
-				public ProcessorResult<Path> GetPath()
-				{
-					var smoothPath = mSmoothingFilter.Add(mPathSegment.IsFirst, mPathSegment.IsLast, mPathSegment.AccumulatedAddition, mPathSegment.LastPrediction);
-
-					var spline = SplineProducer.Add(mPathSegment.IsFirst, mPathSegment.IsLast, smoothPath.Addition, smoothPath.Prediction);
-
-					var points = SplineInterpolator.Add(mPathSegment.IsFirst, mPathSegment.IsLast, spline.Addition, spline.Prediction);
-
-					mPathSegment.Reset();
-					mPointerDataUpdateCount = 0;
-
-					return points;
-				}*/
-
 		#region Public Interface
 
 		public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
@@ -135,52 +114,6 @@ namespace Wacom
 			mStockRasterInkBuilder.SplineInterpolator.InterpolateByLength = true;
 			mStockRasterInkBuilder.SplineInterpolator.SplitCount = 6;
 		}
-
-
-		/*        public void UpdatePipeline(LayoutMask layout, Calculator calculator, float spacing)
-				{
-					bool layoutChanged = false;
-					bool otherChange = false;
-
-					if (layout != Layout)
-					{
-						Layout = layout;
-						layoutChanged = true;
-					}
-
-					if (mPathProducer == null || calculator != mPathProducer.PathPointCalculator || layoutChanged)
-					{
-						mPathProducer = new PathProducer(Layout, calculator, true);
-						otherChange = true;
-					}
-
-					if (mSmoothingFilter == null || layoutChanged)
-					{
-						mSmoothingFilter = new SmoothingFilter()
-						{
-							KeepAllData = true
-						};
-						otherChange = true;
-					}
-
-					if (SplineProducer == null || layoutChanged)
-					{
-						SplineProducer = new SplineProducer(true);
-						otherChange = true;
-					}
-
-					if (SplineInterpolator == null || layoutChanged)
-					{
-						SplineInterpolator = new DistanceBasedInterpolator(spacing, splitCount, true, true, true);
-						otherChange = true;
-					}
-					((DistanceBasedInterpolator)SplineInterpolator).Spacing = spacing;
-
-					if (layoutChanged || otherChange)
-					{
-						LayoutUpdated?.Invoke(this, EventArgs.Empty);
-					}
-				}*/
 
 		public Wacom.Ink.Serialization.Model.RasterBrush CreateSerializationBrush(string name)
         {

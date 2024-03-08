@@ -210,7 +210,7 @@ namespace Wacom
                 {
                     PDFExporter pdfExporter = new PDFExporter();
                     var inkCtrl = NavFrame.Content as InkControlBase;
-                    var pdf = pdfExporter.exportToPDF(inkCtrl.Serializer.InkDocument, PDFExporter.PDF_A4_WIDTH, PDFExporter.PDF_A4_HEIGHT, true);
+                    var pdf = pdfExporter.ExportToPDF(inkCtrl.Serializer.InkDocument, PDFExporter.PDF_A4_WIDTH, PDFExporter.PDF_A4_HEIGHT, true);
                     writer.Write(Encoding.UTF8.GetBytes(pdf));
                 }
             }
@@ -228,7 +228,7 @@ namespace Wacom
                 {
                     SVGExporter svgExporter = new SVGExporter();
                     var inkCtrl = NavFrame.Content as InkControlBase;
-                    var svg = svgExporter.exportToSVG(inkCtrl.Serializer.InkDocument, (float)Width, (float)Height, true);
+                    var svg = svgExporter.ExportToSVG(inkCtrl.Serializer.InkDocument, (float)Width, (float)Height, true);
                     writer.Write(Encoding.UTF8.GetBytes(svg));
                 }
             }
@@ -243,7 +243,7 @@ namespace Wacom
             if (saveFileDlg.ShowDialog() == true)
             {
                 InkControlBase inkCtrl = NavFrame.Content as InkControlBase;
-                System.Drawing.Bitmap bmp = inkCtrl?.toBitmap(Colors.Transparent);
+                System.Drawing.Bitmap bmp = inkCtrl?.ToBitmap(Colors.Transparent);
                 bmp.Save(saveFileDlg.FileName, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
@@ -257,7 +257,7 @@ namespace Wacom
             if (saveFileDlg.ShowDialog() == true)
             {
                 InkControlBase inkCtrl = NavFrame.Content as InkControlBase;
-                System.Drawing.Bitmap bmp = inkCtrl?.toBitmap(Colors.White);
+                System.Drawing.Bitmap bmp = inkCtrl?.ToBitmap(Colors.White);
                 bmp.Save(saveFileDlg.FileName, System.Drawing.Imaging.ImageFormat.Jpeg);
             }
         }

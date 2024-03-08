@@ -46,7 +46,6 @@ namespace Wacom
 
             return pp;
         }
-
     }
 
     /// <summary>

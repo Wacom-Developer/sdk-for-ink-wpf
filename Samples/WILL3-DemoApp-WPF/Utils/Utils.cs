@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
-
 using Wacom.Ink.Rendering;
 
 namespace Wacom
@@ -83,7 +82,5 @@ namespace Wacom
 
             return new PixelData(pixels, (uint)source.PixelWidth, (uint)source.PixelHeight);
         }
-
     }
-
 }

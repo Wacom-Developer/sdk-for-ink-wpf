@@ -58,7 +58,7 @@ namespace Wacom.Export
         private StringBuilder psCommands = new StringBuilder(); // PostScript commands for drawing the inking
         private List<float> graphicStates = new List<float>(); // Store the alphas
 
-        public String exportToPDF(InkModel inkDocument, float pdfWidth, float pdfHeight, bool fit)
+        public String ExportToPDF(InkModel inkDocument, float pdfWidth, float pdfHeight, bool fit)
         {
             System.Globalization.CultureInfo customCulture = (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
@@ -66,7 +66,7 @@ namespace Wacom.Export
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
             // first of all we need to get the PostScript drawing commands from the stroke list
-            drawStrokes(inkDocument, pdfWidth, pdfHeight, fit);
+            DrawStrokes(inkDocument, pdfWidth, pdfHeight, fit);
 
             string commands = psCommands.ToString();
 
@@ -74,18 +74,18 @@ namespace Wacom.Export
 
             string pdf = PDF_TEMPLATE.Replace("$1$", pdfWidth.ToString())
                                      .Replace("$2$", pdfHeight.ToString())
-                                     .Replace("$3$", getGSStates())
+                                     .Replace("$3$", GetGSStates())
                                      .Replace("$4$", commands.Length.ToString())
                                      .Replace("$5$", commands)
                                      .Replace("$6$", "Wacom")
                                      .Replace("$7$", date)
                                      .Replace("$8$", date);
 
-            pdf = pdf.Replace("$9$", this.fill(pdf.IndexOf("1 0 obj")))
-                     .Replace("$10$", this.fill(pdf.IndexOf("2 0 obj")))
-                     .Replace("$11$", this.fill(pdf.IndexOf("3 0 obj")))
-                     .Replace("$12$", this.fill(pdf.IndexOf("4 0 obj")))
-                     .Replace("$13$", this.fill(pdf.IndexOf("5 0 obj")))
+            pdf = pdf.Replace("$9$", this.Fill(pdf.IndexOf("1 0 obj")))
+                     .Replace("$10$", this.Fill(pdf.IndexOf("2 0 obj")))
+                     .Replace("$11$", this.Fill(pdf.IndexOf("3 0 obj")))
+                     .Replace("$12$", this.Fill(pdf.IndexOf("4 0 obj")))
+                     .Replace("$13$", this.Fill(pdf.IndexOf("5 0 obj")))
                      .Replace("$14$", System.Guid.NewGuid().ToString().Replace("-", ""))
                      .Replace("$15$", System.Guid.NewGuid().ToString().Replace("-", ""));
 
@@ -94,7 +94,7 @@ namespace Wacom.Export
             return pdf;
         }
 
-        private string getGSStates()
+        private string GetGSStates()
         {
             StringBuilder gsStates = new StringBuilder();
             for (int index = 0; index < graphicStates.Count; index++)
@@ -105,13 +105,13 @@ namespace Wacom.Export
             return gsStates.ToString();
         }
 
-        private string fill(int offset)
+        private string Fill(int offset)
         {
             string str = "0000000000" + offset;
             return str.Substring(str.Length - 10);
         }
 
-        private void drawStrokes(InkModel inkDocument, float pdfWidth, float pdfHeight, bool fit)
+        private void DrawStrokes(InkModel inkDocument, float pdfWidth, float pdfHeight, bool fit)
         {
             if (inkDocument.InkTree.Root != null)
             {
@@ -148,7 +148,7 @@ namespace Wacom.Export
                                 continue;
                             }
 
-                            drawStroke(strokeNode.Stroke, vb);
+                            DrawStroke(strokeNode.Stroke, vb);
                         }
                     }
                 }
@@ -174,7 +174,7 @@ namespace Wacom.Export
 
         }
 
-        private void drawStroke(Stroke stroke, Wacom.Ink.Geometry.VectorBrush vectorBrush)
+        private void DrawStroke(Stroke stroke, Wacom.Ink.Geometry.VectorBrush vectorBrush)
         {
             psCommands.Append("q\n"); //save the graphics state
             float alpha = stroke.Style.PathPointProperties.Alpha;

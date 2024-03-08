@@ -23,7 +23,7 @@ namespace Wacom.Export
         private float maxY = 0.0f;
 
 
-        public String exportToSVG(InkModel inkDocument, float svgWidth, float svgHeight, bool fit)
+        public String ExportToSVG(InkModel inkDocument, float svgWidth, float svgHeight, bool fit)
         {
             System.Globalization.CultureInfo customCulture = (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
@@ -35,7 +35,7 @@ namespace Wacom.Export
             document.AppendChild(svg);
 
             // first of all we need to get the PostScript drawing commands from the stroke list
-            drawStrokes(document, svg, inkDocument, svgWidth, svgHeight, fit);
+            DrawStrokes(document, svg, inkDocument, svgWidth, svgHeight, fit);
 
             if (fit)
             {
@@ -55,7 +55,7 @@ namespace Wacom.Export
             }
         }
 
-        private void drawStrokes(XmlDocument document, XmlElement svg, InkModel inkDocument, float svgWidth, float svgHeight, bool fit)
+        private void DrawStrokes(XmlDocument document, XmlElement svg, InkModel inkDocument, float svgWidth, float svgHeight, bool fit)
         {
             var inkGroup = document.CreateElement("g", "http://www.w3.org/2000/svg");
             svg.AppendChild(inkGroup);
@@ -95,7 +95,7 @@ namespace Wacom.Export
                                 continue;
                             }
 
-                            drawStroke(document, inkGroup, strokeNode.Stroke, vb);
+                            DrawStroke(document, inkGroup, strokeNode.Stroke, vb);
                         }
                     }
                 }
@@ -112,7 +112,7 @@ namespace Wacom.Export
 
         }
 
-        private void drawStroke(XmlDocument document, XmlElement inkGroup, Stroke stroke, Wacom.Ink.Geometry.VectorBrush vectorBrush)
+        private void DrawStroke(XmlDocument document, XmlElement inkGroup, Stroke stroke, Wacom.Ink.Geometry.VectorBrush vectorBrush)
         {
             var splineInterpolator = new CurvatureBasedInterpolator();
             var brushApplier = new BrushApplier(vectorBrush);
@@ -132,11 +132,11 @@ namespace Wacom.Export
             var inkPath = document.CreateElement("path", "http://www.w3.org/2000/svg");
             inkPath.SetAttribute("fill", hex);
             inkPath.SetAttribute("fill-opacity", stroke.Style.PathPointProperties.Alpha.ToString());
-            inkPath.SetAttribute("d", drawPolygon(simplified.Addition));
+            inkPath.SetAttribute("d", DrawPolygon(simplified.Addition));
             inkGroup.AppendChild(inkPath);
         }
 
-        private String drawPolygon(List<List<Vector2>> polygon)
+        private String DrawPolygon(List<List<Vector2>> polygon)
         {
             if (polygon.Count == 0)
             {

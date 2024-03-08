@@ -568,7 +568,7 @@ namespace Wacom
 
         #endregion
 
-        public System.Drawing.Bitmap toBitmap(System.Windows.Media.Color backgroundColor)
+        public System.Drawing.Bitmap ToBitmap(System.Windows.Media.Color backgroundColor)
         {
             Rect bounds = new Rect(0, 0, Width, Height);
 

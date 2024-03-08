@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Windows;
-
-
 using Wacom.Ink.Geometry;
 using Wacom.Ink.Rendering;
 

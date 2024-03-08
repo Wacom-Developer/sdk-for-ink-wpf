@@ -1,12 +1,10 @@
-﻿using System;
-using System.Windows.Media;
-
+﻿
 namespace Wacom
 {
-    /// <summary>
-    /// Types of brush supported
-    /// </summary>
-    public enum BrushType
+	/// <summary>
+	/// Types of brush supported
+	/// </summary>
+	public enum BrushType
     {
         Vector,
         Raster
@@ -31,5 +29,4 @@ namespace Wacom
         WaterBrush,
         Crayon
     };
-
 }

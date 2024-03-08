@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Wacom.Ink.Geometry;
 
 namespace Wacom
 {
-    /// <summary>
-    /// Abstract base class for drawing tools used to render ink in a variety of styles
-    /// </summary>
-    abstract class DrawingTool
+	/// <summary>
+	/// Abstract base class for drawing tools used to render ink in a variety of styles
+	/// </summary>
+	abstract class DrawingTool
     {
         /// <summary>
         /// Holds configuration parameters for PathPoint calculators
