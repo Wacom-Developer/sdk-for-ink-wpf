@@ -14,11 +14,7 @@ namespace Wacom
     /// </summary>
     abstract class VectorDrawingTool : DrawingTool
     {
-        protected static readonly VectorBrush mCircleBrush = new VectorBrush(
-            new BrushPolygon(0.0f, VectorBrushFactory.CreateEllipseBrush(4, 1.0f, 1.0f)),
-            new BrushPolygon(2.0f, VectorBrushFactory.CreateEllipseBrush(8, 1.0f, 1.0f)),
-            new BrushPolygon(6.0f, VectorBrushFactory.CreateEllipseBrush(16, 1.0f, 1.0f)),
-            new BrushPolygon(18.0f, VectorBrushFactory.CreateEllipseBrush(32, 1.0f, 1.0f)));
+        protected static readonly VectorBrush mCircleBrush = VectorBrushGeometries.Circle;
 
         public abstract VectorBrush Shape { get; }
 

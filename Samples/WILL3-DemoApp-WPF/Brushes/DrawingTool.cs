@@ -68,8 +68,8 @@ namespace Wacom
             var k = (pressureClamped - minPressure) / (maxPressure - minPressure);
             if (remap != null)
                 k = remap(k);
+
             return minValue + k * (maxValue - minValue);
         }
-
     }
 }

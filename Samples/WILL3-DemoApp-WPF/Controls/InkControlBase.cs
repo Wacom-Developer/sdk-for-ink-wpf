@@ -25,21 +25,21 @@ namespace Wacom
     /// </summary>
     public abstract class InkControlBase : UserControl, IDisposable
     {
-        #region Fields
+		#region Fields
 
-        protected PointerManager mPointerManager = new PointerManager();
-        protected DirtyRectManager mDirtyRectManager = new DirtyRectManager();
-        protected object mInkBuilderLock = new object();
-        protected RenderingContext mRenderingContext;
+		protected PointerManager mPointerManager = new PointerManager();
+		protected DirtyRectManager mDirtyRectManager = new DirtyRectManager();
+		protected object mInkBuilderLock = new object();
+		protected RenderingContext mRenderingContext;
 
-        protected Graphics mGraphics = new Graphics();
-        protected Layer mWpfImageLayer;
-        protected Layer mSceneLayer;
-        protected Layer mAllStrokesLayer;
-        protected Layer mPrelimPathLayer;
-        protected Layer mCurrentStrokeLayer;
+		protected Graphics mGraphics = new Graphics();
+		protected Layer mWpfImageLayer;
+		protected Layer mSceneLayer;
+		protected Layer mAllStrokesLayer;
+		protected Layer mPrelimPathLayer;
+		protected Layer mCurrentStrokeLayer;
 
-        protected Serializer mSerializer = new Serializer();
+		protected Serializer mSerializer = new Serializer();
 
         #endregion
 
@@ -50,10 +50,10 @@ namespace Wacom
         public abstract BrushType BrushType { get; }
 
 
-        /// <summary>
-        /// InkBuilder (Vector or Raster) handling pipeline stages for building ink
-        /// </summary>
-        protected abstract InkBuilder InkBuilder { get; }
+		/// <summary>
+		/// InkBuilder (Vector or Raster) handling pipeline stages for building ink
+		/// </summary>
+		protected abstract InkBuilder InkBuilder { get; }
         
         public Serializer Serializer { get => mSerializer; }
 

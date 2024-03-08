@@ -8,10 +8,10 @@ using Wacom.Ink.Serialization.Model;
 
 namespace Wacom
 {
-    /// <summary>
-    /// Manages ink geometry pipeline for raster (particle) brushes.
-    /// </summary>
-    public class RasterInkBuilder : InkBuilder
+	/// <summary>
+	/// Manages ink geometry pipeline for raster (particle) brushes.
+	/// </summary>
+	public class RasterInkBuilder : InkBuilder
     {
         #region Fields
 
@@ -20,23 +20,24 @@ namespace Wacom
 
         private RasterDrawingTool ActiveTool = null;
 
-        #endregion
+		private StockRasterInkBuilder mStockRasterInkBuilder = new StockRasterInkBuilder();
 
-        #region Constructors
+		private RasterBrushStyle mBrushStyle = RasterBrushStyle.Pencil;
 
-        public RasterInkBuilder()
+		#endregion
+
+		#region Constructors
+
+		public RasterInkBuilder()
         {
-        }
+			mPointerDataProvider = mStockRasterInkBuilder.PointerDataProvider;
+		}
 
         #endregion
 
         #region Properties
 
         public ParticleBrush Brush => ActiveTool.Brush;
-
-        public event EventHandler LayoutUpdated;
-
-        RasterBrushStyle mBrushStyle = RasterBrushStyle.Pencil;
 
         public void SetBrushStyle(RasterBrushStyle brushStyle, Graphics graphics)
         {
@@ -58,107 +59,144 @@ namespace Wacom
                     throw new Exception("Unknown brush type");
             }
         }
+
+        public bool HasNewPoints => mStockRasterInkBuilder.HasNewPoints;
+
         #endregion
 
-        /// <summary>
-        /// Transform accumulated pointer input to ink geometry
-        /// </summary>
-        /// <returns>Tuple containing added data (Item1) and predicted or preliminary data (Item2)</returns>
-        /// <remarks>Passes accumulated path segment (from PathProducer) through remaining stages of 
-        /// the raster ink pipeline - Smoother, SplineProducer & SplineInterpolator</remarks>
-        public ProcessorResult<Path> GetPath()
+        public ProcessorResult<Path> GetCurrentInterpolatedPaths()
         {
-            var smoothPath = mSmoothingFilter.Add(mPathSegment.IsFirst, mPathSegment.IsLast, mPathSegment.AccumulatedAddition, mPathSegment.LastPrediction);
+			return mStockRasterInkBuilder.GetCurrentInterpolatedPaths();
+		}
 
-            var spline = SplineProducer.Add(mPathSegment.IsFirst, mPathSegment.IsLast, smoothPath.Addition, smoothPath.Prediction);
+		public Path GetFullInterpolatedPath()
+		{
+			return mStockRasterInkBuilder.GetFullInterpolatedPath();
+		}
 
-            var points = SplineInterpolator.Add(mPathSegment.IsFirst, mPathSegment.IsLast, spline.Addition, spline.Prediction);
+		public Spline GetAccumulatedSplineCopy()
+		{
+			return mStockRasterInkBuilder.SplineAccumulator.Accumulated.Clone();
+		}
 
-            mPathSegment.Reset();
-            mPointerDataUpdateCount = 0;
+		/*        /// <summary>
+				/// Transform accumulated pointer input to ink geometry
+				/// </summary>
+				/// <returns>Tuple containing added data (Item1) and predicted or preliminary data (Item2)</returns>
+				/// <remarks>Passes accumulated path segment (from PathProducer) through remaining stages of 
+				/// the raster ink pipeline - Smoother, SplineProducer & SplineInterpolator</remarks>
+				public ProcessorResult<Path> GetPath()
+				{
+					var smoothPath = mSmoothingFilter.Add(mPathSegment.IsFirst, mPathSegment.IsLast, mPathSegment.AccumulatedAddition, mPathSegment.LastPrediction);
 
-            return points;
+					var spline = SplineProducer.Add(mPathSegment.IsFirst, mPathSegment.IsLast, smoothPath.Addition, smoothPath.Prediction);
+
+					var points = SplineInterpolator.Add(mPathSegment.IsFirst, mPathSegment.IsLast, spline.Addition, spline.Prediction);
+
+					mPathSegment.Reset();
+					mPointerDataUpdateCount = 0;
+
+					return points;
+				}*/
+
+		#region Public Interface
+
+		public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
+		{
+			base.SetupForStylus(sd, graphics);
+
+			SetBrushStyle(mBrushStyle, graphics);
+
+			UpdateParticleInkPipeline(ActiveTool.GetLayoutStylus(), ActiveTool.GetCalculatorStylus(), ActiveTool.ParticleSpacing);
+		}
+
+		public void SetupForTouch(Graphics graphics)
+		{
+			SetBrushStyle(mBrushStyle, graphics);
+
+			UpdateParticleInkPipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
+		}
+
+		public override void SetupForMouse(Graphics graphics)
+		{
+			SetBrushStyle(mBrushStyle, graphics);
+
+			UpdateParticleInkPipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
+		}
+
+		public void UpdateParticleInkPipeline(LayoutMask layoutMask, Calculator calculator, float spacing, float constSize = 1.0f)
+		{
+			mStockRasterInkBuilder.PathProducer.LayoutMask = layoutMask;
+			mStockRasterInkBuilder.PathProducer.PathPointCalculator = calculator;
+
+			mStockRasterInkBuilder.SplineInterpolator.Spacing = spacing;
+			mStockRasterInkBuilder.SplineInterpolator.DefaultSize = constSize;
+
+			mStockRasterInkBuilder.SplineInterpolator.InterpolateByLength = true;
+			mStockRasterInkBuilder.SplineInterpolator.SplitCount = 6;
+		}
+
+
+		/*        public void UpdatePipeline(LayoutMask layout, Calculator calculator, float spacing)
+				{
+					bool layoutChanged = false;
+					bool otherChange = false;
+
+					if (layout != Layout)
+					{
+						Layout = layout;
+						layoutChanged = true;
+					}
+
+					if (mPathProducer == null || calculator != mPathProducer.PathPointCalculator || layoutChanged)
+					{
+						mPathProducer = new PathProducer(Layout, calculator, true);
+						otherChange = true;
+					}
+
+					if (mSmoothingFilter == null || layoutChanged)
+					{
+						mSmoothingFilter = new SmoothingFilter()
+						{
+							KeepAllData = true
+						};
+						otherChange = true;
+					}
+
+					if (SplineProducer == null || layoutChanged)
+					{
+						SplineProducer = new SplineProducer(true);
+						otherChange = true;
+					}
+
+					if (SplineInterpolator == null || layoutChanged)
+					{
+						SplineInterpolator = new DistanceBasedInterpolator(spacing, splitCount, true, true, true);
+						otherChange = true;
+					}
+					((DistanceBasedInterpolator)SplineInterpolator).Spacing = spacing;
+
+					if (layoutChanged || otherChange)
+					{
+						LayoutUpdated?.Invoke(this, EventArgs.Empty);
+					}
+				}*/
+
+		public Wacom.Ink.Serialization.Model.RasterBrush CreateSerializationBrush(string name)
+        {
+            return new Wacom.Ink.Serialization.Model.RasterBrush(
+				name,
+				(float)Brush.FillTileSize.Width,
+				(float)Brush.FillTileSize.Height,
+				true,
+				(RotationMode)Brush.RotationMode,
+				Brush.Scattering,
+				mStockRasterInkBuilder.SplineInterpolator.Spacing,
+				ActiveTool.Fill.ImageFileData,
+				new List<byte[]>() { ActiveTool.Shape.ImageFileData },
+				Wacom.Ink.Serialization.Model.BlendMode.SourceOver);
         }
 
-        #region Public Interface
-
-        public override void SetupForStylus(StylusPointDescription sd, Graphics graphics)
-        {
-            base.SetupForStylus(sd, graphics);
-            SetBrushStyle(mBrushStyle, graphics);
-            UpdatePipeline(ActiveTool.GetLayoutStylus(), ActiveTool.GetCalculatorStylus(), ActiveTool.ParticleSpacing);
-        }
-
-        public void SetupForTouch(Graphics graphics)
-        {
-            SetBrushStyle(mBrushStyle, graphics);
-            UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
-        }
-
-        public override void SetupForMouse(Graphics graphics)
-        {
-            SetBrushStyle(mBrushStyle, graphics);
-            UpdatePipeline(ActiveTool.GetLayoutMouse(), ActiveTool.GetCalculatorMouse(), ActiveTool.ParticleSpacing);
-        }
-
-        public void UpdatePipeline(LayoutMask layout, Calculator calculator, float spacing)
-        {
-            bool layoutChanged = false;
-            bool otherChange = false;
-
-            if (layout != Layout)
-            {
-                Layout = layout;
-                layoutChanged = true;
-            }
-
-            if (mPathProducer == null || calculator != mPathProducer.PathPointCalculator || layoutChanged)
-            {
-                mPathProducer = new PathProducer(Layout, calculator, true);
-                otherChange = true;
-            }
-
-            if (mSmoothingFilter == null || layoutChanged)
-            {
-                mSmoothingFilter = new SmoothingFilter()
-                {
-                    KeepAllData = true
-                };
-                otherChange = true;
-            }
-
-            if (SplineProducer == null || layoutChanged)
-            {
-                SplineProducer = new SplineProducer(true);
-                otherChange = true;
-            }
-
-            if (SplineInterpolator == null || layoutChanged)
-            {
-                SplineInterpolator = new DistanceBasedInterpolator(spacing, splitCount, true, true, true);
-                otherChange = true;
-            }
-            ((DistanceBasedInterpolator)SplineInterpolator).Spacing = spacing;
-
-            if (layoutChanged || otherChange)
-            {
-                LayoutUpdated?.Invoke(this, EventArgs.Empty);
-            }
-        }       
-
-        public Wacom.Ink.Serialization.Model.RasterBrush CreateSerializationBrush(string name)
-        {
-            return new Wacom.Ink.Serialization.Model.RasterBrush(name,
-                                            (float)Brush.FillTileSize.Width, (float)Brush.FillTileSize.Height,
-                                            true,
-                                            (RotationMode)Brush.RotationMode,
-                                            Brush.Scattering,
-                                            ((DistanceBasedInterpolator)SplineInterpolator).Spacing,
-                                            ActiveTool.Fill.ImageFileData,
-                                            new List<byte[]>() { ActiveTool.Shape.ImageFileData },
-                                            Wacom.Ink.Serialization.Model.BlendMode.SourceOver
-                                           );
-        }
         #endregion
     }
 }

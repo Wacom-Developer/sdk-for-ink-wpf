@@ -50,8 +50,8 @@ namespace Wacom
         private RasterBrushStyle mBrushStyle;
 
         private DrawStrokeResult mDrawStrokeResult;
-        private ParticleList mAddedInterpolatedSpline;
-        private ParticleList mPredictedInterpolatedSpline;
+        private ParticleList mAddedInterpolatedSpline = new ParticleList();
+        private ParticleList mPredictedInterpolatedSpline = new ParticleList();
         private List<DryStroke> mDryStrokes = new List<DryStroke>();
         private StrokeConstants mStrokeConstants = new StrokeConstants();
 
@@ -64,11 +64,18 @@ namespace Wacom
         protected override Image ImageCtrl => _ImageCtrl;
         protected override FrameworkElement ImageHost => _ImageHost;
         protected override IEnumerable<object> AllStrokes => mDryStrokes;
-        public override BrushType BrushType { get { return BrushType.Raster; } }
+        public override BrushType BrushType => BrushType.Raster;
 
-        public override MediaColor BrushColor {
-            get { return mStrokeConstants.Color; }
-            set { mStrokeConstants.Color = value; }
+        public override MediaColor BrushColor
+        {
+            get
+            {
+                return mStrokeConstants.Color;
+            }
+            set
+            {
+                mStrokeConstants.Color = value;
+            }
         }
 
         public void SetBrushStyle(RasterBrushStyle  brushStyle)
@@ -86,7 +93,6 @@ namespace Wacom
             InitializeComponent();
 
             mInkBuilder = new RasterInkBuilder();
-            mInkBuilder.LayoutUpdated += InkBuilder_LayoutUpdated;
 
             BrushColor = color;
 
@@ -160,12 +166,6 @@ namespace Wacom
             }
         }
 
-        private void InkBuilder_LayoutUpdated(object sender, EventArgs e)
-        {
-            mAddedInterpolatedSpline = new ParticleList();
-            mPredictedInterpolatedSpline = new ParticleList();
-        }
-
         private void CreateBrush(RasterBrushStyle brushStyle)
         {
             mInkBuilder.SetBrushStyle(brushStyle, mGraphics);
@@ -183,7 +183,7 @@ namespace Wacom
             {
                 if (mInkBuilder.HasNewPoints)
                 {
-                    result = mInkBuilder.GetPath();
+                    result = mInkBuilder.GetCurrentInterpolatedPaths();
                 }
                 else
                 {
@@ -226,23 +226,13 @@ namespace Wacom
 
         protected override void StoreCurrentStroke(string pointerDeviceType)
         {
-            var allData = mInkBuilder.SplineInterpolator.AllData;
+            var allData = mInkBuilder.GetFullInterpolatedPath();
 
-            var points = new List<float>();
-
-            if (allData != null)
+            if ((allData != null) && (allData.Count > 0))
             {
-                for (int i = 0; i < allData.Count; i++)
-                {
-                    points.Add(allData[i]);
-                }
-
-                if (points.Count > 0)
-                {
-                    ParticleList path = new ParticleList();
-                    path.Assign(points, (uint)allData.LayoutMask);
-                    mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone(), mInkBuilder.Brush));
-                }
+                ParticleList path = new ParticleList();
+                path.Assign(allData, (uint)allData.LayoutMask);
+                mDryStrokes.Add(new DryStroke(path, mStartRandomSeed, mStrokeConstants.Clone(), mInkBuilder.Brush));
             }
 
             mRenderingContext.SetTarget(mAllStrokesLayer);

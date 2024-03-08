@@ -59,7 +59,7 @@ namespace Wacom
 					}
 				}
 
-				return VectorBrushFactory.CreateEllipseBrush(precision, radiusX, radiusY);
+				return CreateEllipseBrush(precision, radiusX, radiusY);
 			}
 			else if (type == CommonShapeURIs.Circle.Uri)
 			{
@@ -94,12 +94,30 @@ namespace Wacom
 					}
 				}
 
-				return VectorBrushFactory.CreateEllipseBrush(precision, radius, radius);
+				return CreateEllipseBrush(precision, radius, radius);
 			}
 			else
 			{
 				throw new NotSupportedException($"Unknown shape URI: {type}");
 			}
 		}
+
+		public static List<Vector2> CreateEllipseBrush(int pointsNum, float width, float height)
+		{
+			List<Vector2> brushPoints = new List<Vector2>();
+
+			double radiansStep = Math.PI * 2 / pointsNum;
+			double currentRadian = 0.0;
+
+			for (var i = 0; i < pointsNum; i++)
+			{
+				currentRadian = i * radiansStep;
+				brushPoints.Add(new Vector2((float)(width * Math.Cos(currentRadian)),
+											(float)(height * Math.Sin(currentRadian))));
+			}
+
+			return brushPoints;
+		}
+
 	}
 }

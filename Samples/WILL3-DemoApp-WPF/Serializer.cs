@@ -16,7 +16,7 @@ using MediaColor = System.Windows.Media.Color;
 
 namespace Wacom
 {
-    public class Serializer 
+    public class Serializer
     {
         #region Fields
         private Wacom.Ink.Serialization.Model.Environment mEnvironment = new Wacom.Ink.Serialization.Model.Environment();
@@ -43,7 +43,7 @@ namespace Wacom
         {
             var vectorBrush = new Wacom.Ink.Serialization.Model.VectorBrush(
                                     "will://examples/brushes/" + Guid.NewGuid().ToString(),
-                                    inkBuilder.BrushApplier.Prototype.Polygons);
+                                    inkBuilder.VectorBrush.Polygons);
 
             var style = new Wacom.Ink.Serialization.Model.Style(vectorBrush.Name);
             style.PathPointProperties.Red   = brushColor.R / 255.0f;
@@ -52,8 +52,10 @@ namespace Wacom
             style.PathPointProperties.Alpha = brushColor.A / 255.0f;
 
             AddVectorBrushToInkDoc(pointerDeviceType, vectorBrush, style);
-            EncodeCurrentStrokeCommon(pointerDeviceType, inkBuilder, style);
+
+            EncodeCurrentStrokeCommon(pointerDeviceType, inkBuilder.GetAccumulatedSplineCopy(), style, inkBuilder.GetPointerDataList());
         }
+
         public void EncodeCurrentStroke(string pointerDeviceType, RasterInkBuilder inkBuilder, StrokeConstants strokeConstants, uint startRandomSeed)
         {
             var rasterBrush = inkBuilder.CreateSerializationBrush("will://examples/brushes/" + Guid.NewGuid().ToString());
@@ -63,19 +65,18 @@ namespace Wacom
             style.PathPointProperties.Blue = strokeConstants.Color.B / 255.0f;
             style.PathPointProperties.Alpha = strokeConstants.Color.A / 255.0f;
 
-            AddRasterBrushToInkDoc(pointerDeviceType, rasterBrush, style, strokeConstants, startRandomSeed);   
-            EncodeCurrentStrokeCommon(pointerDeviceType, inkBuilder, style);
+            AddRasterBrushToInkDoc(pointerDeviceType, rasterBrush, style, strokeConstants, startRandomSeed);
+
+            EncodeCurrentStrokeCommon(pointerDeviceType, inkBuilder.GetAccumulatedSplineCopy(), style, inkBuilder.GetPointerDataList());
         }
 
-        private void EncodeCurrentStrokeCommon(string pointerDeviceType, InkBuilder inkBuilder, Style style)
+        private void EncodeCurrentStrokeCommon(string pointerDeviceType, Spline spline, Style style, List<PointerData> pointerDataList)
         {
-
             // Create the ink input provider using the pointer device type
             InkInputProvider inkInputProvider = CreateAndAddInkProvider(pointerDeviceType);
 
             // Create the input device using EasClientDeviceInformation or any other class providing relevant info
             InputDevice inputDevice = CreateAndAddInputDevice();
-
 
             // Create the sensor context 
             SensorContext sensorContext = CreateAndAddSensorContext(inkInputProvider, inputDevice);
@@ -89,25 +90,15 @@ namespace Wacom
                 inputContextId,
                 Wacom.Ink.Serialization.InkState.Plane);
 
-            // Get the sensor data from the ink builders
-            List<PointerData> pointerDataList = inkBuilder.GetPointerDataList();
-
             // Fill the default channels with the sensor data
             FillDefaultChannels(sensorData, sensorContext, pointerDataList);
 
             InkDocument.SensorData.Add(sensorData);
 
-            Spline spline = inkBuilder.SplineProducer.AllData;
-
-            Stroke stroke = new Stroke(
-                Identifier.FromNewGuid(),
-                spline.Clone(),
-                style,
-                sensorData.Id);
+            Stroke stroke = new Stroke(Identifier.FromNewGuid(), spline, style, sensorData.Id);
 
             StrokeNode strokeNode = new StrokeNode(stroke);
             InkDocument.InkTree.Root.Add(strokeNode);
-
         }
 
         private void AddRasterBrushToInkDoc(string pointerDeviceType, RasterBrush rasterBrush, Style rasterStyle, StrokeConstants strokeConstants, uint startRandomSeed)
@@ -228,6 +219,7 @@ namespace Wacom
             {
                 InkDocument.InputConfiguration.Environments.Add(mEnvironment);
             }
+
             return inputContextId;
         }
 

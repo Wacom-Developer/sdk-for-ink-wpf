@@ -5,10 +5,7 @@ using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-
 using Microsoft.Wpf.Interop.DirectX;
-
-
 using Wacom.Ink.Geometry;
 using Wacom.Ink.Rendering;
 using Wacom.Ink.Serialization.Model;
@@ -57,15 +54,19 @@ namespace Wacom
         public override MediaColor BrushColor { get; set; }
         public override BrushType BrushType { get { return BrushType.Vector; } }
 
-        public VectorBrushStyle BrushStyle {
-            get { return mBrushStyle; }
+        public VectorBrushStyle BrushStyle
+        {
+            get
+            {
+                return mBrushStyle;
+            }
             set
             {
                 mBrushStyle = value; 
                 mInkBuilder.BrushStyle = value;
             }
-
         }
+
         #endregion
 
         #region Constructor
@@ -149,7 +150,7 @@ namespace Wacom
             {
                 if (mInkBuilder.HasNewPoints)
                 {
-                    result = mInkBuilder.GetPolygons();
+                    result = mInkBuilder.GetCurrentPolygons();
                     if (result.Addition == null || result.Prediction == null)
                         return;
                 }
@@ -188,9 +189,8 @@ namespace Wacom
 
         protected override void StoreCurrentStroke(string pointerDeviceType)
         {
-            var polygons = mInkBuilder.PolygonSimplifier.AllData;
-            var mergedPolygons = PolygonUtils.MergePolygons(polygons);
-            Wacom.Ink.Rendering.Polygon polygon = PolygonUtil.ConvertPolygon(mergedPolygons);
+            var strokePolygon = mInkBuilder.CreateStrokePolygon();
+            Wacom.Ink.Rendering.Polygon polygon = PolygonUtil.ConvertPolygon(strokePolygon);
 
             mDryStrokes.Add(new DryStroke { mPolygon = polygon, mColor = BrushColor });
 
@@ -268,7 +268,7 @@ namespace Wacom
 
                 foreach (var uri in vectorBrush.BrushPrototypeURIs)
                 {
-                    brushPolygons.Add(new BrushPolygon(uri.MinScale, ShapeUriResolver.ResolveShape(uri.ShapeUri)));
+                    brushPolygons.Add(BrushPolygon.CreateNormalized(uri.MinScale, ShapeUriResolver.ResolveShape(uri.ShapeUri)));
                 }
 
                 vb = new Wacom.Ink.Geometry.VectorBrush(brushPolygons.ToArray());
@@ -317,6 +317,5 @@ namespace Wacom
         }
 
         #endregion
-
     }
 }

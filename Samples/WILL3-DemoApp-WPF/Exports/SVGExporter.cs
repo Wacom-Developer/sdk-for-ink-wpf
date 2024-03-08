@@ -85,7 +85,7 @@ namespace Wacom.Export
 
                                 foreach (var uri in vectorBrush.BrushPrototypeURIs)
                                 {
-                                    brushPolygons.Add(new BrushPolygon(uri.MinScale, ShapeUriResolver.ResolveShape(uri.ShapeUri)));
+                                    brushPolygons.Add(BrushPolygon.CreateNormalized(uri.MinScale, ShapeUriResolver.ResolveShape(uri.ShapeUri)));
                                 }
 
                                 vb = new Wacom.Ink.Geometry.VectorBrush(brushPolygons.ToArray());
